@@ -1,0 +1,12 @@
+node_modules
+/.cache
+/build
+/.mf
+.env
+.DS_Store
+*.log
+*.tsbuildinfo
+.shopify
+prisma/dev.db
+prisma/dev.db-journal
+dist
