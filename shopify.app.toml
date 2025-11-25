@@ -24,4 +24,4 @@ embedded = false
 
 [build]
 automatically_update_urls_on_dev = true
-dev_store_url = "your-dev-store.myshopify.com"
+dev_store_url = "iss-chatbot-dsforma.myshopify.com"
