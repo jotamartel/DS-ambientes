@@ -1,0 +1,9 @@
+{
+  "buildCommand": "npm run vercel-build",
+  "installCommand": "npm install",
+  "framework": "remix",
+  "regions": ["iad1"],
+  "env": {
+    "NODE_ENV": "production"
+  }
+}

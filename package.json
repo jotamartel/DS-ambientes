@@ -5,6 +5,7 @@
   "description": "Shopify App para gestión de órdenes por proyectos y ambientes - De Stefano",
   "scripts": {
     "build": "remix vite:build",
+    "vercel-build": "prisma generate && remix vite:build",
     "dev": "shopify app dev",
     "config:link": "shopify app config link",
     "generate": "shopify app generate",
