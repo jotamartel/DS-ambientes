@@ -1,36 +1,46 @@
+import crypto from "node:crypto";
+import { z } from "zod";
+import type { Project, Environment, ProjectItem } from "@prisma/client";
 import prisma from "~/db.server";
-import type { Project, List, ListItem, Prisma } from "@prisma/client";
-import crypto from "crypto";
+import { ProjectsError, type Actor } from "./types";
+import { projectScope, assertProjectOwned } from "./scope.server";
 
-export type ProjectWithLists = Project & {
-  lists: (List & {
-    items: ListItem[];
-  })[];
+export type ProjectWithEnvironments = Project & {
+  environments: (Environment & { items: ProjectItem[] })[];
 };
 
-// ============ PROJECTS ============
+const ProjectInputSchema = z.object({
+  name: z.string().trim().min(1).max(120),
+  clientName: z.string().trim().max(120).optional().nullable(),
+  clientEmail: z.string().trim().email().max(160).optional().nullable(),
+  clientPhone: z.string().trim().max(40).optional().nullable(),
+  notes: z.string().trim().max(2000).optional().nullable(),
+});
 
-export async function getProjects(
-  shop: string,
-  options?: {
-    status?: string;
-    search?: string;
-    assignedTo?: string;
-    page?: number;
-    limit?: number;
-  }
-) {
-  const { status, search, assignedTo, page = 1, limit = 20 } = options || {};
+const ProjectUpdateSchema = ProjectInputSchema.partial();
 
-  const where: Prisma.ProjectWhereInput = {
-    shop,
-    ...(status && { status }),
-    ...(assignedTo && { assignedTo }),
+const ListOptionsSchema = z.object({
+  archived: z.boolean().optional(),
+  search: z.string().trim().max(120).optional(),
+  page: z.number().int().positive().default(1),
+  limit: z.number().int().positive().max(100).default(20),
+});
+
+export type ProjectInput = z.infer<typeof ProjectInputSchema>;
+export type ProjectUpdate = z.infer<typeof ProjectUpdateSchema>;
+export type ListOptions = z.input<typeof ListOptionsSchema>;
+
+export async function listProjects(actor: Actor, opts: ListOptions = {}) {
+  const { archived, search, page, limit } = ListOptionsSchema.parse(opts);
+
+  const where = {
+    ...projectScope(actor),
+    ...(archived !== undefined && { archived }),
     ...(search && {
       OR: [
-        { name: { contains: search } },
-        { clientName: { contains: search } },
-        { clientEmail: { contains: search } },
+        { name: { contains: search, mode: "insensitive" as const } },
+        { clientName: { contains: search, mode: "insensitive" as const } },
+        { clientEmail: { contains: search, mode: "insensitive" as const } },
       ],
     }),
   };
@@ -39,11 +49,9 @@ export async function getProjects(
     prisma.project.findMany({
       where,
       include: {
-        lists: {
-          include: {
-            items: true,
-          },
-          orderBy: { order: "asc" },
+        environments: {
+          include: { items: true },
+          orderBy: { sortOrder: "asc" },
         },
       },
       orderBy: { updatedAt: "desc" },
@@ -53,387 +61,151 @@ export async function getProjects(
     prisma.project.count({ where }),
   ]);
 
-  return {
-    projects,
-    total,
-    page,
-    totalPages: Math.ceil(total / limit),
-  };
+  return { projects, total, page, totalPages: Math.ceil(total / limit) };
 }
 
-export async function getProject(id: string, shop: string): Promise<ProjectWithLists | null> {
-  return prisma.project.findFirst({
-    where: { id, shop },
+export async function getProject(
+  actor: Actor,
+  projectId: string,
+): Promise<ProjectWithEnvironments> {
+  const project = await prisma.project.findFirst({
+    where: { id: projectId, ...projectScope(actor) },
     include: {
-      lists: {
-        include: {
-          items: true,
-        },
-        orderBy: { order: "asc" },
+      environments: {
+        include: { items: true },
+        orderBy: { sortOrder: "asc" },
       },
     },
   });
+  if (!project) throw new ProjectsError("NOT_FOUND", "Project not found");
+  return project;
 }
 
-export async function getProjectByShareToken(shareToken: string): Promise<ProjectWithLists | null> {
-  return prisma.project.findUnique({
-    where: { shareToken },
-    include: {
-      lists: {
-        include: {
-          items: true,
-        },
-        orderBy: { order: "asc" },
-      },
-    },
-  });
-}
-
-export async function createProject(
-  shop: string,
-  data: {
-    name: string;
-    clientName?: string;
-    clientEmail?: string;
-    clientPhone?: string;
-    assignedTo?: string;
-    notes?: string;
-  }
-) {
+export async function createProject(actor: Actor, input: ProjectInput) {
+  const data = ProjectInputSchema.parse(input);
   return prisma.project.create({
     data: {
-      shop,
-      ...data,
-      status: "draft",
-    },
-    include: {
-      lists: true,
+      shop: actor.shop,
+      customerId: actor.kind === "customer" ? actor.customerId : null,
+      name: data.name,
+      clientName: data.clientName ?? null,
+      clientEmail: data.clientEmail ?? null,
+      clientPhone: data.clientPhone ?? null,
+      notes: data.notes ?? null,
     },
   });
 }
 
 export async function updateProject(
-  id: string,
-  shop: string,
-  data: Partial<{
-    name: string;
-    clientName: string | null;
-    clientEmail: string | null;
-    clientPhone: string | null;
-    status: string;
-    assignedTo: string | null;
-    notes: string | null;
-  }>
+  actor: Actor,
+  projectId: string,
+  input: ProjectUpdate,
 ) {
+  await assertProjectOwned(actor, projectId);
+  const data = ProjectUpdateSchema.parse(input);
   return prisma.project.update({
-    where: { id },
+    where: { id: projectId },
     data,
+  });
+}
+
+export async function archiveProject(actor: Actor, projectId: string) {
+  await assertProjectOwned(actor, projectId);
+  return prisma.project.update({
+    where: { id: projectId },
+    data: { archived: true },
+  });
+}
+
+export async function unarchiveProject(actor: Actor, projectId: string) {
+  await assertProjectOwned(actor, projectId);
+  return prisma.project.update({
+    where: { id: projectId },
+    data: { archived: false },
+  });
+}
+
+export async function deleteProject(actor: Actor, projectId: string) {
+  await assertProjectOwned(actor, projectId);
+  return prisma.project.delete({ where: { id: projectId } });
+}
+
+export async function duplicateProject(actor: Actor, projectId: string) {
+  const source = await prisma.project.findFirst({
+    where: { id: projectId, ...projectScope(actor) },
     include: {
-      lists: {
-        include: {
-          items: true,
-        },
-        orderBy: { order: "asc" },
+      environments: {
+        include: { items: true },
+        orderBy: { sortOrder: "asc" },
       },
     },
   });
-}
+  if (!source) throw new ProjectsError("NOT_FOUND", "Project not found");
 
-export async function deleteProject(id: string, shop: string) {
-  // Verify ownership before delete
-  const project = await prisma.project.findFirst({
-    where: { id, shop },
-  });
-
-  if (!project) {
-    throw new Error("Project not found");
-  }
-
-  return prisma.project.delete({
-    where: { id },
-  });
-}
-
-export async function generateShareToken(id: string, shop: string) {
-  const token = crypto.randomBytes(32).toString("hex");
-
-  return prisma.project.update({
-    where: { id },
-    data: { shareToken: token },
-  });
-}
-
-export async function removeShareToken(id: string, shop: string) {
-  return prisma.project.update({
-    where: { id },
-    data: { shareToken: null },
-  });
-}
-
-// ============ LISTS ============
-
-export async function createList(
-  projectId: string,
-  shop: string,
-  data: { name: string }
-) {
-  // Verify project ownership
-  const project = await prisma.project.findFirst({
-    where: { id: projectId, shop },
-  });
-
-  if (!project) {
-    throw new Error("Project not found");
-  }
-
-  // Get max order
-  const maxOrder = await prisma.list.aggregate({
-    where: { projectId },
-    _max: { order: true },
-  });
-
-  return prisma.list.create({
+  return prisma.project.create({
     data: {
-      projectId,
-      name: data.name,
-      order: (maxOrder._max.order ?? -1) + 1,
-    },
-    include: {
-      items: true,
-    },
-  });
-}
-
-export async function updateList(
-  listId: string,
-  shop: string,
-  data: { name?: string; order?: number }
-) {
-  // Verify ownership through project
-  const list = await prisma.list.findUnique({
-    where: { id: listId },
-    include: { project: true },
-  });
-
-  if (!list || list.project.shop !== shop) {
-    throw new Error("List not found");
-  }
-
-  return prisma.list.update({
-    where: { id: listId },
-    data,
-    include: {
-      items: true,
-    },
-  });
-}
-
-export async function deleteList(listId: string, shop: string) {
-  // Verify ownership through project
-  const list = await prisma.list.findUnique({
-    where: { id: listId },
-    include: { project: true },
-  });
-
-  if (!list || list.project.shop !== shop) {
-    throw new Error("List not found");
-  }
-
-  return prisma.list.delete({
-    where: { id: listId },
-  });
-}
-
-export async function duplicateList(listId: string, shop: string) {
-  const list = await prisma.list.findUnique({
-    where: { id: listId },
-    include: { project: true, items: true },
-  });
-
-  if (!list || list.project.shop !== shop) {
-    throw new Error("List not found");
-  }
-
-  // Get max order
-  const maxOrder = await prisma.list.aggregate({
-    where: { projectId: list.projectId },
-    _max: { order: true },
-  });
-
-  // Create new list with copied items
-  return prisma.list.create({
-    data: {
-      projectId: list.projectId,
-      name: `${list.name} (copia)`,
-      order: (maxOrder._max.order ?? 0) + 1,
-      items: {
-        create: list.items.map((item) => ({
-          shopifyProductId: item.shopifyProductId,
-          shopifyVariantId: item.shopifyVariantId,
-          productTitle: item.productTitle,
-          variantTitle: item.variantTitle,
-          productImage: item.productImage,
-          quantity: item.quantity,
-          comment: item.comment,
-          unitPrice: item.unitPrice,
+      shop: source.shop,
+      customerId: source.customerId,
+      name: `${source.name} (copia)`,
+      clientName: source.clientName,
+      clientEmail: source.clientEmail,
+      clientPhone: source.clientPhone,
+      notes: source.notes,
+      environments: {
+        create: source.environments.map((env) => ({
+          name: env.name,
+          sortOrder: env.sortOrder,
+          items: {
+            create: env.items.map((item) => ({
+              productId: item.productId,
+              variantId: item.variantId,
+              quantity: item.quantity,
+              note: item.note,
+            })),
+          },
         })),
       },
     },
     include: {
-      items: true,
+      environments: { include: { items: true }, orderBy: { sortOrder: "asc" } },
     },
   });
 }
 
-export async function reorderLists(
-  projectId: string,
-  shop: string,
-  listOrder: string[]
-) {
-  // Verify project ownership
-  const project = await prisma.project.findFirst({
-    where: { id: projectId, shop },
+export async function generateShareToken(actor: Actor, projectId: string) {
+  await assertProjectOwned(actor, projectId);
+  const token = crypto.randomBytes(32).toString("hex");
+  return prisma.project.update({
+    where: { id: projectId },
+    data: { shareToken: token },
   });
-
-  if (!project) {
-    throw new Error("Project not found");
-  }
-
-  // Update order for each list
-  const updates = listOrder.map((listId, index) =>
-    prisma.list.update({
-      where: { id: listId },
-      data: { order: index },
-    })
-  );
-
-  return prisma.$transaction(updates);
 }
 
-// ============ LIST ITEMS ============
-
-export async function addItemToList(
-  listId: string,
-  shop: string,
-  data: {
-    shopifyProductId: string;
-    shopifyVariantId: string;
-    productTitle: string;
-    variantTitle?: string;
-    productImage?: string;
-    quantity: number;
-    unitPrice: number;
-    comment?: string;
-  }
-) {
-  // Verify ownership through project
-  const list = await prisma.list.findUnique({
-    where: { id: listId },
-    include: { project: true },
+export async function revokeShareToken(actor: Actor, projectId: string) {
+  await assertProjectOwned(actor, projectId);
+  return prisma.project.update({
+    where: { id: projectId },
+    data: { shareToken: null },
   });
+}
 
-  if (!list || list.project.shop !== shop) {
-    throw new Error("List not found");
-  }
-
-  return prisma.listItem.create({
-    data: {
-      listId,
-      shopifyProductId: data.shopifyProductId,
-      shopifyVariantId: data.shopifyVariantId,
-      productTitle: data.productTitle,
-      variantTitle: data.variantTitle,
-      productImage: data.productImage,
-      quantity: data.quantity,
-      unitPrice: data.unitPrice,
-      comment: data.comment,
+/**
+ * Public read-only fetch by share token. Returns null when not found or when
+ * the project is archived (archived projects don't expose their share link).
+ */
+export async function getProjectByShareToken(
+  token: string,
+): Promise<ProjectWithEnvironments | null> {
+  if (!token || token.length < 32) return null;
+  const project = await prisma.project.findUnique({
+    where: { shareToken: token },
+    include: {
+      environments: {
+        include: { items: true },
+        orderBy: { sortOrder: "asc" },
+      },
     },
   });
-}
-
-export async function updateListItem(
-  itemId: string,
-  shop: string,
-  data: {
-    quantity?: number;
-    comment?: string | null;
-    unitPrice?: number;
-  }
-) {
-  // Verify ownership through project
-  const item = await prisma.listItem.findUnique({
-    where: { id: itemId },
-    include: { list: { include: { project: true } } },
-  });
-
-  if (!item || item.list.project.shop !== shop) {
-    throw new Error("Item not found");
-  }
-
-  return prisma.listItem.update({
-    where: { id: itemId },
-    data,
-  });
-}
-
-export async function deleteListItem(itemId: string, shop: string) {
-  // Verify ownership through project
-  const item = await prisma.listItem.findUnique({
-    where: { id: itemId },
-    include: { list: { include: { project: true } } },
-  });
-
-  if (!item || item.list.project.shop !== shop) {
-    throw new Error("Item not found");
-  }
-
-  return prisma.listItem.delete({
-    where: { id: itemId },
-  });
-}
-
-// ============ STATISTICS ============
-
-export async function getProjectStats(shop: string) {
-  const now = new Date();
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-
-  const [activeCount, completedThisMonth, allProjects] = await Promise.all([
-    prisma.project.count({
-      where: { shop, status: "active" },
-    }),
-    prisma.project.count({
-      where: {
-        shop,
-        status: "completed",
-        updatedAt: { gte: startOfMonth },
-      },
-    }),
-    prisma.project.findMany({
-      where: { shop, status: { in: ["draft", "active"] } },
-      include: {
-        lists: {
-          include: {
-            items: true,
-          },
-        },
-      },
-    }),
-  ]);
-
-  // Calculate total value of active quotations
-  let totalValue = 0;
-  for (const project of allProjects) {
-    for (const list of project.lists) {
-      for (const item of list.items) {
-        totalValue += Number(item.unitPrice) * item.quantity;
-      }
-    }
-  }
-
-  return {
-    activeProjects: activeCount,
-    completedThisMonth,
-    totalQuotationValue: totalValue,
-  };
+  if (!project || project.archived) return null;
+  return project;
 }

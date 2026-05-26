@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&amp;family=Montserrat:ital,wght@0,400;0,500;0,600;1,400&amp;family=Public+Sans:wght@600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#1a1814",
+                        secondary: "#f5f1ea",
+                        accent: "#stone-500",
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    fontFamily: {
+                        "headline": ["Bricolage Grotesque", "Public Sans"],
+                        "display": ["Bricolage Grotesque", "Public Sans"],
+                        "body": ["Montserrat"],
+                        "label": ["Montserrat"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #f5f1ea;
+            font-family: 'Montserrat', sans-serif;
+            color: #1a1814;
+        }
+        .font-bricolage { font-family: 'Bricolage Grotesque', sans-serif; }
+        .tabular-nums { font-variant-numeric: tabular-nums; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="antialiased pb-32">
+<!-- TopNavBar (Shared Component) -->
+<nav class="sticky top-0 z-50 flex justify-between items-center px-8 py-6 w-full max-w-[1920px] mx-auto bg-[#f5f1ea] dark:bg-stone-950 border-b border-stone-200 dark:border-stone-800 flat no shadows">
+<div class="flex items-center gap-12">
+<span class="text-2xl font-bold tracking-tighter text-[#1a1814] dark:text-white font-['Bricolage_Grotesque']">Forma</span>
+<div class="hidden md:flex gap-8">
+<a class="text-stone-500 dark:text-stone-400 font-medium font-['Bricolage_Grotesque'] font-semibold tracking-tight uppercase text-sm hover:text-black dark:hover:text-white transition-colors duration-200" href="#">Materials</a>
+<a class="text-[#1a1814] dark:text-white border-b-2 border-[#1a1814] dark:border-white pb-1 font-['Bricolage_Grotesque'] font-semibold tracking-tight uppercase text-sm hover:text-black dark:hover:text-white transition-colors duration-200" href="#">Projects</a>
+<a class="text-stone-500 dark:text-stone-400 font-medium font-['Bricolage_Grotesque'] font-semibold tracking-tight uppercase text-sm hover:text-black dark:hover:text-white transition-colors duration-200" href="#">Designers</a>
+<a class="text-stone-500 dark:text-stone-400 font-medium font-['Bricolage_Grotesque'] font-semibold tracking-tight uppercase text-sm hover:text-black dark:hover:text-white transition-colors duration-200" href="#">Inspiration</a>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="hidden md:flex items-center bg-stone-200/50 dark:bg-stone-800/50 px-4 py-2 rounded-full">
+<span class="material-symbols-outlined text-stone-500 text-sm">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm font-['Montserrat'] w-48" placeholder="Buscar..." type="text"/>
+</div>
+<span class="material-symbols-outlined text-[#1a1814] dark:text-stone-100 cursor-pointer">shopping_bag</span>
+<span class="material-symbols-outlined text-[#1a1814] dark:text-stone-100 cursor-pointer">account_circle</span>
+</div>
+</nav>
+<main class="max-w-7xl mx-auto px-8 py-10">
+<!-- Breadcrumb -->
+<a class="flex items-center gap-2 text-stone-500 hover:text-black transition-colors mb-8 text-sm font-medium" href="#">
+<span class="material-symbols-outlined text-lg">arrow_back</span>
+            Mis proyectos
+        </a>
+<!-- Header Section -->
+<header class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
+<div>
+<h1 class="font-bricolage text-[48px] leading-tight tracking-tight font-bold">Casa Lomas — Reforma Integral</h1>
+<p class="font-['Montserrat'] italic text-stone-500 text-lg mt-1">Familia Schiavoni</p>
+</div>
+<div class="flex flex-wrap gap-3">
+<button class="px-5 py-2.5 border border-stone-200 rounded-lg hover:bg-stone-50 transition-colors text-sm font-semibold flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px]">share</span> Compartir
+                </button>
+<button class="px-5 py-2.5 border border-stone-200 rounded-lg hover:bg-stone-50 transition-colors text-sm font-semibold flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px]">content_copy</span> Duplicar
+                </button>
+<button class="px-5 py-2.5 border border-stone-200 rounded-lg hover:bg-stone-50 transition-colors text-sm font-semibold flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px]">archive</span> Archivar
+                </button>
+<button class="px-5 py-2.5 bg-[#1a1814] text-white rounded-lg hover:bg-black transition-colors text-sm font-semibold flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px]">add</span> Agregar producto
+                </button>
+</div>
+</header>
+<!-- Stats Row -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-12">
+<div class="bg-white border border-stone-200 p-6 rounded-lg">
+<p class="text-stone-500 text-[13px] uppercase tracking-wider font-semibold mb-2">Ambientes</p>
+<p class="font-bricolage text-3xl font-bold">5</p>
+</div>
+<div class="bg-white border border-stone-200 p-6 rounded-lg">
+<p class="text-stone-500 text-[13px] uppercase tracking-wider font-semibold mb-2">Productos</p>
+<p class="font-bricolage text-3xl font-bold">23</p>
+</div>
+<div class="bg-white border border-stone-200 p-6 rounded-lg ring-2 ring-stone-900/5 ring-inset">
+<p class="text-stone-500 text-[13px] uppercase tracking-wider font-semibold mb-2">Total estimado</p>
+<p class="font-bricolage text-3xl font-bold tabular-nums">14.892.560 <span class="text-sm">ARS</span></p>
+</div>
+<div class="bg-white border border-stone-200 p-6 rounded-lg">
+<p class="text-stone-500 text-[13px] uppercase tracking-wider font-semibold mb-2">Actualizado</p>
+<p class="font-['Montserrat'] text-xl font-medium pt-2">hace 2 días</p>
+</div>
+</div>
+<!-- Compartir Card -->
+<div class="bg-white border border-stone-200 rounded-lg p-6 mb-12">
+<h3 class="font-bricolage text-lg mb-4">Link público</h3>
+<div class="flex flex-col md:flex-row gap-4">
+<div class="flex-grow flex items-center bg-stone-50 border border-stone-200 px-4 py-2.5 rounded-lg text-stone-500 text-sm font-mono overflow-hidden">
+                    https://forma.com.ar/p/casa-lomas-reforma-integral/public/782x91
+                </div>
+<div class="flex gap-2">
+<button class="px-5 py-2.5 border border-stone-200 rounded-lg hover:bg-stone-50 transition-colors text-sm font-semibold">Copiar</button>
+<button class="px-5 py-2.5 border border-stone-200 rounded-lg hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-colors text-sm font-semibold">Revocar enlace</button>
+</div>
+</div>
+</div>
+<!-- Ambientes List -->
+<div class="space-y-12">
+<!-- Cocina -->
+<section class="bg-white border border-stone-200 rounded-lg overflow-hidden">
+<div class="px-8 py-6 border-b border-stone-100 flex flex-col md:flex-row justify-between md:items-center gap-4">
+<div class="flex items-baseline gap-6">
+<h2 class="font-bricolage text-2xl font-bold tracking-tight text-[#1a1814]">Cocina</h2>
+<span class="font-bricolage tabular-nums text-stone-500">ARS 7.499.295</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-sm font-semibold flex items-center gap-2 text-stone-600 hover:text-black transition-colors">
+<span class="material-symbols-outlined text-[20px]">add_circle</span> Producto en este ambiente
+                        </button>
+<button class="p-2 hover:bg-stone-50 rounded-full transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</div>
+</div>
+<!-- Products Table/List -->
+<div class="divide-y divide-stone-100">
+<!-- Product 1 -->
+<div class="p-8 flex flex-col md:flex-row items-center gap-8">
+<img class="w-20 h-20 object-cover rounded shadow-sm" data-alt="Close-up of professional gas burner from Pitt Cooking integrated directly into a luxury kitchen stone countertop" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCvkgBM35EX0fcxgUWdEikmDkLgcrQGVfNkQN1zRGOt-1o_f57Zg4PHVmqZJy_WQDrmg9AEZnxvH6-EQ72Qwl5u6rDKe3oQCWUakJ85E44qt-Tso_XrgF7-fahPohulWTOr2kDg629fwUy8-DXiwh-azZZSILD1CYeWC_udE2i1OVBR8wSzt6lZmDrWJ8PO9qm29rSSug5z2m3guyW3qiEkzcfaQUatKavqw343jsZ61DWS2m-GQ7fbSIEj-TZkym01b-DhWI8c08w"/>
+<div class="flex-grow">
+<h4 class="font-bricolage text-base font-bold text-[#1a1814]">Pitt Cooking Drum</h4>
+<p class="font-['Montserrat'] text-[13px] text-stone-500 mt-0.5">Single burner integrated system</p>
+</div>
+<div class="flex flex-wrap items-center gap-8 text-right">
+<div class="flex items-center gap-4 border border-stone-200 rounded-lg p-1 px-3">
+<span class="text-xs text-stone-400 uppercase font-bold">Qty</span>
+<input class="w-12 border-none p-0 focus:ring-0 font-bricolage font-bold text-center" type="number" value="1"/>
+</div>
+<div class="w-32">
+<p class="font-bricolage tabular-nums text-base">7.431.578 <span class="text-[10px] text-stone-400 ml-1">ARS</span></p>
+</div>
+<button class="text-stone-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</div>
+<!-- Product 2 -->
+<div class="p-8 flex flex-col md:flex-row items-center gap-8">
+<img class="w-20 h-20 object-cover rounded shadow-sm" data-alt="High-resolution texture of Boost Balance Moon ceramic tile with soft grey and sand tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAtJe6ixi0ZgLRuDox5VNlwHnX-k3T1nYg-Q0qlTFohNJwP1XZSAzwFDU2JGAImM6LZaVCBn0hyvEoxHKoooTXY9LruJWU3uG8ulKvCNV0kUrqGDFAWFFyT0hg6GMUqVbXcHD18ri5Vqr1MYBVFQH5ue2jt0xozaoDNkCDNZLHt5cj6WTAtqKclWyRg74TxvUxorhs8YOpejZSzjDAvVnL-k4vLM3yyg2noeCl4RsETmjUcgiISGvG7Izh3v9yvNHJI-klAvI11oN8"/>
+<div class="flex-grow">
+<h4 class="font-bricolage text-base font-bold text-[#1a1814]">Boost Balance Moon</h4>
+<p class="font-['Montserrat'] text-[13px] text-stone-500 mt-0.5">Porcelanato rectificado 120x120</p>
+</div>
+<div class="flex flex-wrap items-center gap-8 text-right">
+<div class="flex items-center gap-4 border border-stone-200 rounded-lg p-1 px-3">
+<span class="text-xs text-stone-400 uppercase font-bold">Qty</span>
+<input class="w-12 border-none p-0 focus:ring-0 font-bricolage font-bold text-center" type="number" value="24"/>
+</div>
+<div class="w-32">
+<p class="font-bricolage tabular-nums text-base">67.717 <span class="text-[10px] text-stone-400 ml-1">ARS</span></p>
+</div>
+<button class="text-stone-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</div>
+<!-- Product 3 -->
+<div class="p-8 flex flex-col md:flex-row items-center gap-8">
+<img class="w-20 h-20 object-cover rounded shadow-sm" data-alt="Minimalist luxury kitchen faucet in matte chrome finish standing against a clean marble background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDBr6DrmdfVYdHzF3L0cneqK39br-5rvtc9IPv-PHt4jR2z5RF6jtsXmknF9VuURA5R7l3DQmT-x-5MqtLagFMlRc8zkTG8y1DOK2f_SM96iuMt19sCAnSPvpN7iiG-oY43CIzgXnsdXKewkxRuIAZOGa3lUMHpfJe2Unlo4KlZunjNEVpwcyrCOUAYVhfzt2ue_JyVZmwfTKVjetV1zcNTIcvb7D_ccKDzg8wAoL9GhIhiwtwYjOUkuWb0FYivt4M52YmUUhp7ZR8"/>
+<div class="flex-grow">
+<h4 class="font-bricolage text-base font-bold text-[#1a1814]">Monocomando Bajo Venti 720</h4>
+<p class="font-['Montserrat'] text-[13px] text-stone-500 mt-0.5">Chrome finish - High flow</p>
+</div>
+<div class="flex flex-wrap items-center gap-8 text-right">
+<div class="flex items-center gap-4 border border-stone-200 rounded-lg p-1 px-3">
+<span class="text-xs text-stone-400 uppercase font-bold">Qty</span>
+<input class="w-12 border-none p-0 focus:ring-0 font-bricolage font-bold text-center" type="number" value="1"/>
+</div>
+<div class="w-32">
+<p class="font-bricolage tabular-nums text-base">2.456.935 <span class="text-[10px] text-stone-400 ml-1">ARS</span></p>
+</div>
+<button class="text-stone-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Baño Principal -->
+<section class="bg-white border border-stone-200 rounded-lg overflow-hidden">
+<div class="px-8 py-6 border-b border-stone-100 flex flex-col md:flex-row justify-between md:items-center gap-4">
+<div class="flex items-baseline gap-6">
+<h2 class="font-bricolage text-2xl font-bold tracking-tight text-[#1a1814]">Baño Principal</h2>
+<span class="font-bricolage tabular-nums text-stone-500">ARS 4.322.145</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-sm font-semibold flex items-center gap-2 text-stone-600 hover:text-black transition-colors">
+<span class="material-symbols-outlined text-[20px]">add_circle</span> Producto en este ambiente
+                        </button>
+<button class="p-2 hover:bg-stone-50 rounded-full transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</div>
+</div>
+<div class="divide-y divide-stone-100">
+<div class="p-8 flex flex-col md:flex-row items-center gap-8">
+<img class="w-20 h-20 object-cover rounded shadow-sm" data-alt="Duravit wall-mounted ceramic toilet by Philippe Starck in a bright modern bathroom setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBY-RoLO5wGjHh8ilaMerGOAqnFOEwclBG7ZivdYcCJfBr7w14RCSnNqH8GyTgo3lY2why4MKy4T_p7XbSgxVmHPEEpQsR9BUmRV_7gzxgiBdsCmJcBei42wmJJy1T-OFEXLGoZFX23W7cKmQIb5DckJNvFpbA62EBDBQ_Vekxyv90b2JlQP625oVJXfqX1WGtCCefMWZMB8ng-oxU_KKOvy5Av6wolC7ILChjSlY0Kf1fxba9oMBCgOG0XNSPapeu21cfHtQDKfdc"/>
+<div class="flex-grow">
+<h4 class="font-bricolage text-base font-bold text-[#1a1814]">Inodoro Duravit Me by Starck</h4>
+<p class="font-['Montserrat'] text-[13px] text-stone-500 mt-0.5">Suspended - Rimless white ceramic</p>
+</div>
+<div class="flex flex-wrap items-center gap-8 text-right">
+<div class="flex items-center gap-4 border border-stone-200 rounded-lg p-1 px-3">
+<span class="text-xs text-stone-400 uppercase font-bold">Qty</span>
+<input class="w-12 border-none p-0 focus:ring-0 font-bricolage font-bold text-center" type="number" value="1"/>
+</div>
+<div class="w-32">
+<p class="font-bricolage tabular-nums text-base">2.712.045 <span class="text-[10px] text-stone-400 ml-1">ARS</span></p>
+</div>
+<button class="text-stone-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</div>
+<div class="p-8 flex flex-col md:flex-row items-center gap-8">
+<img class="w-20 h-20 object-cover rounded shadow-sm" data-alt="Slab of Tundra Grey natural marble showing sophisticated silver and grey veining for flooring" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDzZD041XOcNN0lBplhnyoyrTyOuXAvopYwBlBPJF1OqjIRxlJXi0HykRVKaMgzgZrb_PQhY7d3f_Rq1ZZ3eqNeGfjWvxv_fFmywj1jWjL5DI2cg2oqLVBKB-wjNtA9LNfYM0wCtvUNZDdVqfl8_T-G-uE2ckJcCJOpG2fJ9QWx9DROgkmifYcJva-mV-XJGLWkFljUwxkiw0vMYs5OOffFUyULctO0sJUaBNrYPdk4GRbN-cJyR5acNSjp7eUwUqqEtAF4A-fLIIY"/>
+<div class="flex-grow">
+<h4 class="font-bricolage text-base font-bold text-[#1a1814]">Tundra Grey</h4>
+<p class="font-['Montserrat'] text-[13px] text-stone-500 mt-0.5">Natural Stone Slab - Polished</p>
+</div>
+<div class="flex flex-wrap items-center gap-8 text-right">
+<div class="flex items-center gap-4 border border-stone-200 rounded-lg p-1 px-3">
+<span class="text-xs text-stone-400 uppercase font-bold">Qty</span>
+<input class="w-12 border-none p-0 focus:ring-0 font-bricolage font-bold text-center" type="number" value="18"/>
+</div>
+<div class="w-32">
+<p class="font-bricolage tabular-nums text-base">89.450 <span class="text-[10px] text-stone-400 ml-1">ARS</span></p>
+</div>
+<button class="text-stone-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Living -->
+<section class="bg-white border border-stone-200 rounded-lg overflow-hidden">
+<div class="px-8 py-6 border-b border-stone-100 flex flex-col md:flex-row justify-between md:items-center gap-4">
+<div class="flex items-baseline gap-6">
+<h2 class="font-bricolage text-2xl font-bold tracking-tight text-[#1a1814]">Living</h2>
+<span class="font-bricolage tabular-nums text-stone-500">ARS 4.294.400</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-sm font-semibold flex items-center gap-2 text-stone-600 hover:text-black transition-colors">
+<span class="material-symbols-outlined text-[20px]">add_circle</span> Producto en este ambiente
+                        </button>
+<button class="p-2 hover:bg-stone-50 rounded-full transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</div>
+</div>
+<div class="divide-y divide-stone-100">
+<div class="p-8 flex flex-col md:flex-row items-center gap-8">
+<img class="w-20 h-20 object-cover rounded shadow-sm" data-alt="Classic Italian Travertine stone tile showing natural porous texture and warm beige organic variations" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDKqslVFTQ_c_qshDcSgl9PCXQEvybtrlgP2kEsjQ6zHc8xCpGm_OEr5lBNNvo1uWGSoExKmvkjO8LeCZ0VKeB3oGekz2YEMdyOTky768yH-FA8qK0ux6qYVf8tFFqePPsJLmdgv_xZcnzbF_ALeUa9UpUQrUnYsi4sjjJNJv6AWk7yVlH1KXm6uZdB8ubuInJkTiQUvCEXiQJ2-a-ugnX32ZKRmyup-j5IT0uNXliYYZr469NaxTTfvyjPQo3xacCaXfcKf85G9OU"/>
+<div class="flex-grow">
+<h4 class="font-bricolage text-base font-bold text-[#1a1814]">Travertino al agua</h4>
+<p class="font-['Montserrat'] text-[13px] text-stone-500 mt-0.5">Classic vein-cut travertine tile</p>
+</div>
+<div class="flex flex-wrap items-center gap-8 text-right">
+<div class="flex items-center gap-4 border border-stone-200 rounded-lg p-1 px-3">
+<span class="text-xs text-stone-400 uppercase font-bold">Qty</span>
+<input class="w-12 border-none p-0 focus:ring-0 font-bricolage font-bold text-center" type="number" value="32"/>
+</div>
+<div class="w-32">
+<p class="font-bricolage tabular-nums text-base">134.200 <span class="text-[10px] text-stone-400 ml-1">ARS</span></p>
+</div>
+<button class="text-stone-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- BottomNavBar (Shared Component) -->
+<div class="fixed bottom-0 left-0 w-full z-50 flex justify-between items-center px-12 py-4 h-24 bg-white/95 dark:bg-stone-900/95 backdrop-blur-md border-t border-stone-100 dark:border-stone-800 shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)]">
+<div class="flex flex-col">
+<p class="font-bricolage text-2xl font-bold tabular-nums text-stone-900 dark:text-stone-50">14.892.560 ARS</p>
+<p class="font-['Montserrat'] font-medium text-xs tracking-wide text-stone-500 uppercase">23 productos seleccionados</p>
+</div>
+<div class="flex items-center gap-12">
+<button class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 transition-all px-4 py-2 rounded">
+<span class="material-symbols-outlined">list_alt</span>
+<span class="font-['Montserrat'] font-medium text-[10px] mt-1">Review Project</span>
+</button>
+<button class="flex items-center gap-2 bg-stone-900 dark:bg-stone-50 text-white dark:text-stone-900 px-8 py-4 rounded-none font-['Bricolage_Grotesque'] uppercase tracking-widest active:scale-95 duration-150">
+<span class="material-symbols-outlined">shopping_cart_checkout</span>
+                Add all to cart
+            </button>
+</div>
+</div>
+</body></html>

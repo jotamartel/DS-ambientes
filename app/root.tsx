@@ -1,11 +1,12 @@
-import {
-  Links,
-  Meta,
-  Outlet,
-  Scripts,
-  ScrollRestoration,
-} from "@remix-run/react";
+import { Links, Meta, Outlet } from "@remix-run/react";
 
+// We intentionally render NO client-side bundle (no <Scripts>, no
+// <ScrollRestoration>). This app is server-rendered only and behaves
+// like a classic post-redirect-get website. Reason: Remix's client
+// router fetches loader data via URLs that don't always survive
+// Shopify's App Proxy cleanly, causing hydration mismatches and 404s.
+// The trade-off is no SPA fluidity — every navigation is a full page
+// reload — but it's bulletproof under the proxy.
 export default function App() {
   return (
     <html>
@@ -22,8 +23,6 @@ export default function App() {
       </head>
       <body>
         <Outlet />
-        <ScrollRestoration />
-        <Scripts />
       </body>
     </html>
   );

@@ -1,222 +1,136 @@
-# DS Ambientes - Shopify App
+# DS Ambientes — Standalone Vendor App
 
-Sistema de gestión de órdenes por proyectos y ambientes para De Stefano.
+Web app independiente para que vendedores de De Stefano armen **proyectos de productos por ambientes** y compartan un link con el cliente para checkout. Single-tenant: apunta a un único store de Shopify (`pkyzzu-96.myshopify.com`) vía Storefront API.
 
-## Descripción
+## Surfaces
 
-Esta aplicación de Shopify permite a los vendedores crear y gestionar múltiples listas de compra (carritos) organizadas por proyecto o ambiente, con funcionalidades avanzadas de cotización y compartición.
+| Quién | Cómo entra | Para qué |
+|---|---|---|
+| **Vendedor** | `/login` con contraseña compartida | Crea proyectos, agrega ambientes y productos, genera share link |
+| **Cliente final** | Share link `/share/<token>` | Ve el proyecto en read-only y "Agregar todo al carrito" → checkout en el store |
 
-### Características Principales
+No hay Shopify embedded admin. No hay App Proxy. No hay OAuth. Es un sitio Remix corriente que habla con Shopify por **Storefront API** (productos + cart create).
 
-- **Gestión de Proyectos**: Crear, editar y gestionar proyectos con información de cliente
-- **Ambientes/Listas**: Organizar productos por ambiente (Baño, Cocina, Living, etc.)
-- **Comentarios por Ítem**: Agregar notas específicas a cada producto
-- **Compartir Presupuestos**: Generar enlaces públicos para compartir con clientes
-- **Conversión a Órdenes**: Convertir proyectos en Draft Orders de Shopify
-- **Dashboard**: Vista general con estadísticas y acceso rápido
+## Stack
 
-## Stack Tecnológico
+- Remix v2 + Vite + TypeScript
+- Cookie session (firmada con `SESSION_SECRET`) para auth de vendedores
+- Polaris 12 para la UI del vendedor + CSS propio mobile-first para la página pública del share
+- Storefront API (GraphQL `2024-04`) — búsqueda de productos + datos live + Cart create
+- Prisma 5 + PostgreSQL (Neon)
+- Zod en validación
 
-- **Framework**: Shopify Remix App
-- **Base de datos**: Prisma con SQLite (desarrollo) / PostgreSQL (producción)
-- **UI**: Shopify Polaris
-- **API**: Shopify Admin GraphQL API
+## Modelo de datos
 
-## Requisitos Previos
-
-- Node.js 18.20+ o 20.10+
-- npm o yarn
-- Cuenta de Partner de Shopify
-- Tienda de desarrollo de Shopify
-
-## Instalación
-
-### 1. Clonar el repositorio
-
-```bash
-git clone <repository-url>
-cd DS-ambientes
+```
+Project       id, shop, customerId?, name, archived, shareToken?,
+              clientName?, clientEmail?, clientPhone?, notes?
+Environment   id, projectId, name, sortOrder
+ProjectItem   id, environmentId, productId, variantId, quantity, note?
 ```
 
-### 2. Instalar dependencias
+`customerId` quedó nullable por compatibilidad — en este modo standalone, todos los proyectos son del shop. El campo se mantiene para una eventual migración a Customer Account Extensions.
 
-```bash
-npm install
-```
-
-### 3. Configurar variables de entorno
-
-Copiar el archivo de ejemplo y configurar las variables:
-
-```bash
-cp .env.example .env
-```
-
-Editar `.env` con tus credenciales:
-
-```env
-SHOPIFY_API_KEY=tu_api_key
-SHOPIFY_API_SECRET=tu_api_secret
-SCOPES=read_products,write_draft_orders,read_customers
-DATABASE_URL="file:./dev.db"
-```
-
-### 4. Inicializar la base de datos
-
-```bash
-npx prisma generate
-npx prisma migrate dev --name init
-```
-
-### 5. Conectar con Shopify
-
-```bash
-npm run config:link
-```
-
-### 6. Iniciar el servidor de desarrollo
-
-```bash
-npm run dev
-```
-
-## Estructura del Proyecto
+## Estructura
 
 ```
 app/
+├── customer-ui/          Layout y CSS de la página pública del share
+├── services/             Service layer (project, environment, item, types, scope)
+├── shopify-integration/  Storefront client, products, cart
 ├── routes/
-│   ├── app._index.tsx              # Dashboard principal
-│   ├── app.projects._index.tsx     # Lista de proyectos
-│   ├── app.projects.new.tsx        # Crear proyecto
-│   ├── app.projects.$id.tsx        # Detalle de proyecto
-│   ├── app.projects.$id.lists.$listId.tsx  # Gestión de lista
-│   ├── app.projects.$id.convert.tsx # Convertir a orden
-│   ├── app.api.projects.tsx        # API de proyectos
-│   ├── app.api.lists.tsx           # API de listas
-│   ├── app.api.products.tsx        # API de productos
-│   └── share.$token.tsx            # Vista pública compartida
-├── services/
-│   ├── project.server.ts           # Lógica de proyectos
-│   └── shopify.api.server.ts       # Integración con Shopify
-├── shopify.server.ts               # Configuración de Shopify
-└── db.server.ts                    # Cliente de Prisma
+│   ├── _index.tsx                       redirect login/projects
+│   ├── login.tsx                        vendor login
+│   ├── logout.tsx                       vendor logout
+│   ├── projects.tsx                     parent layout (Polaris + frame)
+│   ├── projects._index.tsx              list
+│   ├── projects.new.tsx                 create
+│   ├── projects.$id.tsx                 detail + project actions
+│   ├── projects.$id.environments.tsx    env mutations
+│   ├── projects.$id.items.tsx           item mutations
+│   ├── projects.$id.search.tsx          product search (Storefront)
+│   └── share.$token.tsx                 public share + add-to-cart
+├── session.server.ts     cookie session helpers
+├── db.server.ts          Prisma client
+├── root.tsx, entry.server.tsx
+prisma/
+├── schema.prisma
+├── migrations/...
+└── seed.ts
 ```
 
-## Uso
+## Setup
 
-### Crear un Proyecto
-
-1. Desde el Dashboard, clic en "Nuevo Proyecto"
-2. Completar nombre del proyecto y datos del cliente
-3. El proyecto se crea en estado "Borrador"
-
-### Agregar Ambientes
-
-1. Abrir el proyecto
-2. Clic en "Agregar Ambiente"
-3. Nombrar el ambiente (ej: "Baño Principal")
-
-### Agregar Productos
-
-1. Entrar al ambiente
-2. Clic en "Agregar Productos"
-3. Seleccionar productos del catálogo de Shopify
-4. Los productos se agregan con precio actual
-
-### Agregar Comentarios
-
-1. En la lista de productos, clic en editar
-2. Agregar cantidad y comentario
-3. Los comentarios aparecen en el presupuesto y la orden
-
-### Compartir Presupuesto
-
-1. En el proyecto, clic en "Compartir"
-2. Generar enlace público
-3. Copiar y enviar al cliente
-
-### Convertir a Orden
-
-1. Clic en "Convertir a Orden"
-2. Seleccionar los ambientes a incluir
-3. Se crea un Draft Order en Shopify
-
-## Modelo de Datos
-
-### Project
-- `id`: Identificador único
-- `shop`: Tienda de Shopify
-- `name`: Nombre del proyecto
-- `clientName`, `clientEmail`, `clientPhone`: Datos del cliente
-- `status`: Estado (draft, active, completed, cancelled)
-- `assignedTo`: Vendedor asignado
-- `shareToken`: Token para compartir
-
-### List
-- `id`: Identificador único
-- `projectId`: Proyecto padre
-- `name`: Nombre del ambiente
-- `order`: Orden de visualización
-
-### ListItem
-- `id`: Identificador único
-- `listId`: Lista padre
-- `shopifyProductId`, `shopifyVariantId`: Referencias a Shopify
-- `productTitle`, `variantTitle`, `productImage`: Datos cacheados
-- `quantity`: Cantidad
-- `unitPrice`: Precio unitario
-- `comment`: Comentario/nota
-
-## Scopes de Shopify
-
-La app requiere los siguientes permisos:
-
-- `read_products`: Leer productos y variantes
-- `write_draft_orders`: Crear órdenes borrador
-- `read_customers`: Leer información de clientes
-
-## Desarrollo
-
-### Comandos Útiles
+### 1. Dependencias y DB
 
 ```bash
-# Desarrollo
-npm run dev
-
-# Build
-npm run build
-
-# Generar cliente Prisma
-npm run prisma generate
-
-# Crear migración
-npm run prisma migrate dev --name <nombre>
-
-# Ver base de datos
-npx prisma studio
-
-# Deploy
-npm run deploy
+npm install
+npx prisma generate
+npx prisma migrate deploy
 ```
 
-### Agregar Webhooks
+`DATABASE_URL` en `.env` (ya está apuntando a Neon).
 
-La app está configurada para recibir webhooks de:
-- `PRODUCTS_UPDATE`: Actualiza precios cacheados
-- `APP_UNINSTALLED`: Limpia datos de la tienda
+### 2. Storefront API token desde el store real
 
-## Producción
+1. Entrá al admin del store: `https://admin.shopify.com/store/pkyzzu-96`
+2. **Settings → Apps and sales channels → Develop apps**
+3. **Create an app** → nombre `ds-ambientes-storefront` (o el que quieras)
+4. Click la app → tab **API credentials** → **Storefront API integration → Configure scopes**
+5. Marcá:
+   - `unauthenticated_read_product_listings`
+   - `unauthenticated_write_checkouts`
+6. Save → **Install app** (botón arriba a la derecha)
+7. Copiá el **Storefront API access token** que aparece
+8. Pegalo en `.env` como `SHOPIFY_STOREFRONT_TOKEN`
 
-Para desplegar en producción:
+### 3. Variables de entorno
 
-1. Cambiar `DATABASE_URL` a PostgreSQL
-2. Ejecutar migraciones: `npx prisma migrate deploy`
-3. Desplegar con `npm run deploy`
+`.env` necesita:
 
-## Soporte
+```
+SHOP=pkyzzu-96.myshopify.com
+SHOPIFY_STOREFRONT_TOKEN=<el del paso 2>
+VENDOR_PASSWORD=<elegí una>
+SESSION_SECRET=<32 bytes hex; node -e "console.log(require('crypto').randomBytes(32).toString('hex'))">
+PUBLIC_BASE_URL=http://localhost:3000
+DATABASE_URL=<Postgres>
+```
 
-Para reportar problemas o sugerencias, contactar al equipo de desarrollo.
+### 4. Dev
 
-## Licencia
+```bash
+npm run dev
+```
 
-Propietario - De Stefano
+Abre `http://localhost:3000`:
+- **`/login`** → ingresás con `VENDOR_PASSWORD`.
+- **`/projects`** → dashboard, crear/editar proyectos.
+- En el detalle, "Generar enlace" da el share URL público.
+- **`/share/<token>`** → vista pública, add-to-cart.
+
+### 5. Production deploy (Vercel)
+
+`vercel.json` ya está configurado. Setear en Vercel los env vars:
+
+- `DATABASE_URL`, `SHOP`, `SHOPIFY_STOREFRONT_TOKEN`, `VENDOR_PASSWORD`, `SESSION_SECRET`
+- `PUBLIC_BASE_URL` = el dominio de Vercel (sin trailing slash)
+
+`npm run vercel-build` corre `prisma generate && remix vite:build`.
+
+## Seguridad
+
+- **Vendor login**: única contraseña compartida (POC). Para producción real, mover a JWT/usuarios reales o IDP corporativo.
+- **Session cookie**: `httpOnly`, `secure` en prod, firmada con `SESSION_SECRET`, 30 días.
+- **Share tokens**: 32 bytes random hex (`crypto.randomBytes(32)`), índice único en Postgres. Proyectos archivados ocultan su share.
+- **Validación**: zod en cada action. GIDs Shopify validados con regex.
+- **Storefront token**: público por diseño (puede ir en JS de cliente). De todos modos, mantenerlo solo server-side reduce abuse.
+
+## Pendientes
+
+- Drag-and-drop real para reorder (hoy: botones ↑/↓ — y de hecho los descomentamos en este modo standalone, hay que reagregarlos cuando se quiera).
+- Export PDF del proyecto.
+- Email del share link.
+- Hooks de analytics.
+- Tests automatizados.
+- Migrar a Customer Account Extensions cuando se quiera el flujo customer-self-serve.

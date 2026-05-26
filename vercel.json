@@ -3,6 +3,9 @@
   "installCommand": "npm install",
   "framework": "remix",
   "regions": ["iad1"],
+  "rewrites": [
+    { "source": "/apps/projects/", "destination": "/apps/projects" }
+  ],
   "env": {
     "NODE_ENV": "production"
   }

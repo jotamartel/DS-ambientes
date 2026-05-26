@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<!-- Google Fonts: Bricolage Grotesque & Montserrat -->
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600&amp;family=Montserrat:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+                stone: {
+                    50: "#f5f1ea",
+                    100: "#faf7f2",
+                    900: "#1a1814",
+                    950: "#0c0b09"
+                }
+            },
+            borderRadius: {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            fontFamily: {
+                    "headline": ["Bricolage Grotesque", "sans-serif"],
+                    "body": ["Montserrat", "sans-serif"],
+                    "label": ["Montserrat", "sans-serif"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .tabular-nums {
+            font-variant-numeric: tabular-nums;
+        }
+    </style>
+</head>
+<body class="bg-stone-50 text-stone-900 font-body min-h-screen">
+<!-- TopNavBar from JSON -->
+<nav class="flex justify-between items-center px-8 h-20 w-full sticky top-0 z-50 bg-[#f5f1ea] dark:bg-stone-950 border-b border-stone-200 dark:border-stone-800 font-['Montserrat'] text-sm tracking-wide transition-colors duration-200 ease-in-out">
+<div class="flex items-center gap-8">
+<span class="text-2xl font-semibold tracking-tighter text-stone-900 dark:text-stone-50 font-headline">DS FORMA</span>
+<div class="hidden md:flex gap-6">
+<a class="text-stone-900 dark:text-stone-50 font-bold border-b-2 border-stone-900 dark:border-stone-50 pb-1" href="#">Proyectos</a>
+<a class="text-stone-500 dark:text-stone-400 hover:text-stone-700 transition-colors" href="#">Materiales</a>
+<a class="text-stone-500 dark:text-stone-400 hover:text-stone-700 transition-colors" href="#">Presupuestos</a>
+<a class="text-stone-500 dark:text-stone-400 hover:text-stone-700 transition-colors" href="#">Arquitectos</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative hidden lg:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-lg">search</span>
+<input class="bg-white/50 border border-stone-200 rounded-full pl-10 pr-4 py-1.5 text-xs w-64 focus:ring-1 focus:ring-stone-900 focus:border-stone-900 outline-none transition-all" placeholder="Buscar material..." type="text"/>
+</div>
+<button class="material-symbols-outlined p-2 text-stone-600 hover:bg-stone-100/50 rounded-full">notifications</button>
+<button class="material-symbols-outlined p-2 text-stone-600 hover:bg-stone-100/50 rounded-full">account_circle</button>
+</div>
+</nav>
+<div class="flex">
+<!-- SideNavBar from JSON -->
+<aside class="hidden md:flex flex-col h-[calc(100vh-5rem)] py-8 bg-[#faf7f2] dark:bg-stone-900 w-64 border-r border-stone-200 dark:border-stone-800 sticky top-20 transition-all duration-300">
+<div class="px-6 mb-8">
+<h2 class="font-headline text-lg font-semibold text-stone-900 dark:text-stone-50">Proyectos</h2>
+<p class="text-[10px] uppercase tracking-widest text-stone-500 font-medium">Asistente de Diseño</p>
+</div>
+<nav class="flex-1">
+<a class="flex items-center gap-3 font-['Montserrat'] text-xs font-medium uppercase tracking-widest bg-stone-900 text-white dark:bg-stone-50 dark:text-stone-900 px-4 py-3 mb-1" href="#">
+<span class="material-symbols-outlined text-lg">dashboard</span>
+                    Overview
+                </a>
+<a class="flex items-center gap-3 font-['Montserrat'] text-xs font-medium uppercase tracking-widest text-stone-600 dark:text-stone-400 px-4 py-3 hover:bg-stone-200 dark:hover:bg-stone-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-lg">countertops</span>
+                    Cocinas
+                </a>
+<a class="flex items-center gap-3 font-['Montserrat'] text-xs font-medium uppercase tracking-widest text-stone-600 dark:text-stone-400 px-4 py-3 hover:bg-stone-200 dark:hover:bg-stone-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-lg">shower</span>
+                    Baños
+                </a>
+<a class="flex items-center gap-3 font-['Montserrat'] text-xs font-medium uppercase tracking-widest text-stone-600 dark:text-stone-400 px-4 py-3 hover:bg-stone-200 dark:hover:bg-stone-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-lg">chair</span>
+                    Living
+                </a>
+<a class="flex items-center gap-3 font-['Montserrat'] text-xs font-medium uppercase tracking-widest text-stone-600 dark:text-stone-400 px-4 py-3 hover:bg-stone-200 dark:hover:bg-stone-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-lg">deck</span>
+                    Exteriores
+                </a>
+</nav>
+<div class="mt-auto px-4 py-6 border-t border-stone-200 dark:border-stone-800">
+<button class="w-full bg-stone-900 text-white py-3 text-xs uppercase tracking-widest font-bold hover:bg-stone-800 transition-colors mb-6">
+                    Nuevo Ambiente
+                </button>
+<div class="space-y-1">
+<a class="flex items-center gap-3 font-['Montserrat'] text-xs font-medium uppercase tracking-widest text-stone-500 hover:text-stone-900 px-2 py-2 transition-colors" href="#">
+<span class="material-symbols-outlined text-lg">help_outline</span>
+                        Soporte
+                    </a>
+<a class="flex items-center gap-3 font-['Montserrat'] text-xs font-medium uppercase tracking-widest text-stone-500 hover:text-stone-900 px-2 py-2 transition-colors" href="#">
+<span class="material-symbols-outlined text-lg">settings</span>
+                        Configuración
+                    </a>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 px-8 py-12 max-w-6xl mx-auto">
+<!-- Header Section -->
+<header class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+<div>
+<h1 class="font-headline text-5xl md:text-6xl text-stone-900 leading-tight">Mis Proyectos</h1>
+<p class="text-stone-500 mt-2 font-medium">3 proyectos activos</p>
+</div>
+<button class="flex items-center justify-center gap-2 bg-stone-900 text-white px-8 py-4 font-bold tracking-tight hover:bg-stone-800 transition-all">
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'wght' 500;">add</span>
+                    + Nuevo proyecto
+                </button>
+</header>
+<!-- Sub-header Bar -->
+<div class="flex flex-col md:flex-row items-center justify-between gap-4 border-b border-stone-200 pb-4 mb-8">
+<div class="flex gap-8">
+<button class="text-stone-900 font-bold border-b-2 border-stone-900 pb-4 relative -bottom-[17px]">Activos (3)</button>
+<button class="text-stone-400 hover:text-stone-600 transition-colors pb-4">Archivados (1)</button>
+<button class="text-stone-400 hover:text-stone-600 transition-colors pb-4">Todos</button>
+</div>
+<div class="relative w-full md:w-80">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-stone-400">search</span>
+<input class="w-full bg-stone-100/50 border border-transparent focus:bg-white focus:border-stone-200 rounded-none pl-10 pr-4 py-2.5 text-sm outline-none transition-all" placeholder="Buscar proyectos..." type="text"/>
+</div>
+</div>
+<!-- Projects List -->
+<div class="space-y-4">
+<!-- Card 1 -->
+<article class="group bg-white border border-stone-200 rounded-[4px] p-4 flex flex-col md:flex-row items-start md:items-center gap-6 hover:bg-stone-100/50 cursor-pointer transition-colors">
+<div class="w-[120px] h-[120px] bg-stone-100 overflow-hidden flex-shrink-0">
+<img alt="Casa Lomas" class="w-full h-full object-cover grayscale-[20%] group-hover:scale-105 transition-transform duration-500" data-alt="Modern minimalist living room with travertine floors, natural wood ceiling, and large floor-to-ceiling windows showing lush garden" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAFlA1Bu_Swh0LwvQW5bYjSi9O8NZDqXPT2qnkpLTl8ttyMuv3jzhlr21QxoHhk10GfHy3TCIvr0bI7qXPfN1yz_UFV543qNZ2NV5JweTtcuX7__sG6zeyUABsYrAxwbUZ9c_k29AO-vQHZPrn6TAC-Rk7Qrd0cdxTboMMYCTfDUmmGLoIaaR9V3c0fuCQHE5LTmz_Uh00KslsT_P7BoaYr4_ioaFPvlyQbWBKaisEZaCTIaP_UgRphCCyKKMLrNPY6UaaaGxZ5Ncw"/>
+</div>
+<div class="flex-1 space-y-1">
+<h3 class="font-headline text-2xl text-stone-900 leading-none">Casa Lomas — Reforma Integral</h3>
+<p class="text-sm text-stone-500 font-medium">Familia Schiavoni</p>
+<div class="flex items-center gap-3 text-[12px] text-stone-400 uppercase tracking-widest mt-2">
+<span>5 ambientes</span>
+<span class="w-1 h-1 bg-stone-300 rounded-full"></span>
+<span>23 productos</span>
+</div>
+</div>
+<div class="flex flex-col items-end gap-2 text-right">
+<span class="font-headline text-2xl tabular-nums text-stone-900 leading-none">2.712.045 ARS</span>
+<span class="text-[12px] text-stone-400 font-medium italic">Actualizado hace 2 días</span>
+</div>
+<button class="material-symbols-outlined p-2 text-stone-400 hover:text-stone-900 transition-colors">more_vert</button>
+</article>
+<!-- Card 2 -->
+<article class="group bg-white border border-stone-200 rounded-[4px] p-4 flex flex-col md:flex-row items-start md:items-center gap-6 hover:bg-stone-100/50 cursor-pointer transition-colors">
+<div class="w-[120px] h-[120px] bg-stone-100 overflow-hidden flex-shrink-0 relative">
+<img alt="Showroom Recoleta" class="w-full h-full object-cover grayscale-[20%] group-hover:scale-105 transition-transform duration-500" data-alt="Luxurious kitchen interior with dark marble countertops, premium brass fixtures, and architectural lighting in a high-end showroom" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAbAASP1aXO8FsxrBHURepPW8i8oYHLeDXz4hlOUoRv30a3aBg7E6B6XFumo-XMzxdlMSgmjS7P7zQjafOt_wR08PwKqlmoSOC0_-UvCyGdgZJyD5j0bWk8Sc2G91O3egE0liSQCPpPYUaoTA0D8254NqQJmyBGpYUHY9LKlCLzb110J6VEKJKI2jwnG70-iDv_jmCDdIGnxm7MR0pUiswRxsvqe5fR-Don2WwPxxXUif77ZyRK-u1M3MzywCgCzTS0E9vLml1lkk8"/>
+<span class="absolute top-2 left-2 bg-stone-900 text-white text-[10px] px-2 py-1 font-bold uppercase tracking-tighter">Sales rep</span>
+</div>
+<div class="flex-1 space-y-1">
+<h3 class="font-headline text-2xl text-stone-900 leading-none">Showroom Recoleta — Cliente directo</h3>
+<p class="text-sm text-stone-400 font-medium italic">Sin cliente asignado</p>
+<div class="flex items-center gap-3 text-[12px] text-stone-400 uppercase tracking-widest mt-2">
+<span>3 ambientes</span>
+<span class="w-1 h-1 bg-stone-300 rounded-full"></span>
+<span>11 productos</span>
+</div>
+</div>
+<div class="flex flex-col items-end gap-2 text-right">
+<span class="font-headline text-2xl tabular-nums text-stone-900 leading-none">8.124.330 ARS</span>
+<span class="text-[12px] text-stone-400 font-medium italic">Actualizado hace 5 días</span>
+</div>
+<button class="material-symbols-outlined p-2 text-stone-400 hover:text-stone-900 transition-colors">more_vert</button>
+</article>
+<!-- Card 3 -->
+<article class="group bg-white border border-stone-200 rounded-[4px] p-4 flex flex-col md:flex-row items-start md:items-center gap-6 hover:bg-stone-100/50 cursor-pointer transition-colors">
+<div class="w-[120px] h-[120px] bg-stone-100 overflow-hidden flex-shrink-0">
+<img alt="Departamento Pilar" class="w-full h-full object-cover grayscale-[20%] group-hover:scale-105 transition-transform duration-500" data-alt="Detail of a minimalist bathroom with grey tundra stone walls, duravit sanitary ware, and soft atmospheric morning light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBiE6GDholDVEV3qTjCEUQ1gi0v_1qpXP4llvXwP8HDwuLdvy5p0IpMjlNw2fJduUk4CaodlC2MDJGAuqzG6WVpTWyNnPafVMInMJNTYE4gfh6-wSfiA7RA-hvKqL1TXQac81X2PHAYsc7jkwO2OXOSeFBQn3chSzuajIaJ11GSZGLqn5QLMnneuzkySJXR0beMzAXK-45nTBCd6P8KjmGZ_s8WBCitysnjSL2po4VIKzK7rAuu9xb9wHU6YZX1_yFmzvYK-WnYJvk"/>
+</div>
+<div class="flex-1 space-y-1">
+<h3 class="font-headline text-2xl text-stone-900 leading-none">Departamento Pilar — Baños y cocina</h3>
+<p class="text-sm text-stone-500 font-medium">Estudio Norte</p>
+<div class="flex items-center gap-3 text-[12px] text-stone-400 uppercase tracking-widest mt-2">
+<span>2 ambientes</span>
+<span class="w-1 h-1 bg-stone-300 rounded-full"></span>
+<span>8 productos</span>
+</div>
+</div>
+<div class="flex flex-col items-end gap-2 text-right">
+<span class="font-headline text-2xl tabular-nums text-stone-900 leading-none">4.560.890 ARS</span>
+<span class="text-[12px] text-stone-400 font-medium italic">Actualizado hace 1 semana</span>
+</div>
+<button class="material-symbols-outlined p-2 text-stone-400 hover:text-stone-900 transition-colors">more_vert</button>
+</article>
+</div>
+<!-- Footer Pagination / Visual Balance -->
+<footer class="mt-16 pt-8 border-t border-stone-200 flex justify-between items-center text-stone-400 text-xs">
+<p>© 2024 DS FORMA — Premium Architectural Solutions</p>
+<div class="flex gap-4">
+<a class="hover:text-stone-900 transition-colors" href="#">Manual de Uso</a>
+<a class="hover:text-stone-900 transition-colors" href="#">Términos y condiciones</a>
+</div>
+</footer>
+</main>
+</div>
+<!-- Mobile BottomNavBar (Suppressed for Desktop, shown via media queries if needed) -->
+<div class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-stone-200 px-6 py-4 flex justify-between items-center z-50">
+<button class="material-symbols-outlined text-stone-900" style="font-variation-settings: 'FILL' 1;">dashboard</button>
+<button class="material-symbols-outlined text-stone-400">search</button>
+<button class="material-symbols-outlined text-stone-400">add_circle</button>
+<button class="material-symbols-outlined text-stone-400">notifications</button>
+<button class="material-symbols-outlined text-stone-400">person</button>
+</div>
+</body></html>

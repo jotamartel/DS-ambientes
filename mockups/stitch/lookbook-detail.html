@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;900&amp;family=Montserrat:wght@400;500;600;700&amp;family=Public+Sans:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "brand-cream": "#f5f1ea",
+            "brand-offwhite": "#faf7f2",
+            "brand-dark": "#1a1814",
+          },
+          borderRadius: {
+            "DEFAULT": "0px",
+            "lg": "0px",
+            "xl": "0px",
+            "full": "0px"
+          },
+          fontFamily: {
+            "headline": ["Bricolage Grotesque", "sans-serif"],
+            "display": ["Bricolage Grotesque", "sans-serif"],
+            "body": ["Montserrat", "sans-serif"],
+            "label": ["Montserrat", "sans-serif"]
+          },
+        },
+      },
+    }
+  </script>
+<style>
+    body {
+      background-color: #f5f1ea;
+      color: #1a1814;
+      font-family: 'Montserrat', sans-serif;
+    }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+    }
+    .tight-tracking { letter-spacing: -0.04em; }
+    .extra-tight-tracking { letter-spacing: -0.06em; }
+    .hairline { border-width: 0.5px; }
+  </style>
+</head>
+<body class="bg-brand-cream text-brand-dark">
+<!-- TopNavBar (JSON Authority) -->
+<header class="fixed top-0 w-full z-50 bg-[#faf7f2] dark:bg-[#1a1814] border-b border-neutral-200 dark:border-neutral-800 h-20">
+<div class="flex justify-between items-center px-8 h-full w-full max-w-screen-2xl mx-auto">
+<div class="text-2xl font-black tracking-tighter text-[#1a1814] dark:text-[#f5f1ea] font-['Bricolage_Grotesque'] uppercase">
+        DS Forma
+      </div>
+<nav class="hidden md:flex space-x-12">
+<a class="text-neutral-500 dark:text-neutral-400 pb-1 font-['Bricolage_Grotesque'] tracking-tighter uppercase text-sm font-semibold hover:text-black dark:hover:text-white transition-colors duration-300" href="#">Catálogo</a>
+<a class="text-[#1a1814] dark:text-[#f5f1ea] border-b border-[#1a1814] dark:border-[#f5f1ea] pb-1 font-['Bricolage_Grotesque'] tracking-tighter uppercase text-sm font-semibold" href="#">Proyectos</a>
+<a class="text-neutral-500 dark:text-neutral-400 pb-1 font-['Bricolage_Grotesque'] tracking-tighter uppercase text-sm font-semibold hover:text-black dark:hover:text-white transition-colors duration-300" href="#">Materiales</a>
+<a class="text-neutral-500 dark:text-neutral-400 pb-1 font-['Bricolage_Grotesque'] tracking-tighter uppercase text-sm font-semibold hover:text-black dark:hover:text-white transition-colors duration-300" href="#">Nosotros</a>
+</nav>
+<div class="flex items-center space-x-6">
+<div class="cursor-pointer transition-opacity active:opacity-70 text-[#1a1814] dark:text-[#f5f1ea]">
+<span class="material-symbols-outlined">shopping_bag</span>
+</div>
+</div>
+</div>
+</header>
+<main class="pt-20 pb-32">
+<!-- Hero Section -->
+<section class="w-full">
+<div class="relative w-full aspect-[21/9] md:aspect-[16/7] overflow-hidden">
+<img alt="Casa Lomas Interior" class="w-full h-full object-cover" data-alt="Luxurious architectural interior with floor-to-ceiling windows, natural stone walls, and warm indirect sunlight casting soft shadows on textured surfaces." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJfOk_Q8BfTU-haSbge9kvk2NT65_lKsTOb6cDvhyl9auC08Lv9Akgi5_E9hl5m7_d7od7-m1C4tk7i-D3HxEzcqIHkQhJQoQD2Z3ZGd0IslekR60TZBeyZSf64uUJ0srscUhPoQSXhPKiJFrvdq-hoxOTftew_6LFqBSm8qe4-Rs4N2AVSv3mAUuukOtfHP3-BFHpc7aaHBAj7XcP2gx8Pzg-61NHwQMIhLU3yV-9-X3d42uwkIZO63kUPAh6R2SgOfugSzerqVo"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+<div class="absolute bottom-12 left-12 md:left-20 text-white">
+<p class="font-body text-xs uppercase tracking-[0.3em] mb-4 opacity-90">DS Forma · Proyecto curado</p>
+<h1 class="font-headline text-6xl md:text-[120px] leading-[0.9] extra-tight-tracking font-black uppercase">
+            Casa Lomas<br/>
+<span class="opacity-80">Reforma Integral</span>
+</h1>
+</div>
+</div>
+<!-- Meta Info Bar -->
+<div class="max-w-screen-2xl mx-auto px-8 md:px-20 py-8 flex flex-col md:row justify-between items-start md:items-center border-b border-neutral-300">
+<div class="font-body text-sm flex gap-6 items-center">
+<span class="font-bold">5 ambientes</span>
+<span class="text-neutral-400">•</span>
+<span class="font-bold">23 productos</span>
+<span class="text-neutral-400">•</span>
+<span class="text-lg">Total estimado: <span class="font-semibold">ARS 14.892.560</span></span>
+</div>
+<div class="flex gap-8 mt-4 md:mt-0 font-body text-xs uppercase tracking-widest font-semibold">
+<button class="hover:underline underline-offset-4">Renombrar</button>
+<button class="hover:underline underline-offset-4">Compartir</button>
+<button class="hover:underline underline-offset-4">Archivar</button>
+</div>
+</div>
+</section>
+<!-- Ambiente 01: Cocina -->
+<section class="max-w-screen-2xl mx-auto px-8 md:px-20 mt-24 mb-32">
+<div class="mb-16">
+<span class="font-body text-[10px] uppercase tracking-[0.4em] text-neutral-500 block mb-2">AMBIENTE 01</span>
+<h2 class="font-headline text-7xl md:text-8xl tight-tracking uppercase font-black mb-4">Cocina</h2>
+<p class="font-body italic text-xl text-neutral-600">Isla central, gabinetes en madera teñida</p>
+</div>
+<!-- Asymmetric Product Layout -->
+<div class="grid grid-cols-12 gap-8 md:gap-16">
+<!-- Main Product -->
+<div class="col-span-12 lg:col-span-8 group cursor-pointer">
+<div class="aspect-[16/10] bg-neutral-100 overflow-hidden mb-6">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Professional gas cooktop Pitt Cooking integrated into a dark stone countertop in a minimalist high-end kitchen setting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCc8Ll4TIEJryuVO_tDrdYlMTFXgdYtnkliHes_M4xyYTBSlk47_aisnhUW-Eu6G6PjQtNRFApeUFVJweSrEtHnoVU8sCZ4Heml2kHuGjhZC11FH0dTfU1ecPd-0GOIDp_io5ySEtG51sU49wZIMq-VPte9u4rgNrYI3WeddnzPKtEIMefwq1L_sHjtVKJy8Rg8snSefVipTK467a4g2MXhs_Zu0lh0uvZNfAKxnPXEj5pj6Az7KF18Drn_4xqrQVn76L3258ss16U"/>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-headline text-2xl uppercase tracking-tighter font-semibold">Pitt Cooking Drum</h3>
+<p class="font-body text-sm text-neutral-500 uppercase mt-1">115,7x50,3 cm • Qty 1</p>
+</div>
+<div class="text-right">
+<span class="font-body text-xl font-medium tracking-tight">7.431.578 ARS</span>
+</div>
+</div>
+</div>
+<!-- Secondary Products -->
+<div class="col-span-12 lg:col-span-4 flex flex-col gap-24">
+<div class="group cursor-pointer">
+<div class="aspect-square bg-neutral-100 overflow-hidden mb-6">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Detailed close-up of premium textured porcelain tiles Boost Balance Moon with a subtle matte finish in soft neutral gray." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDRsgcEmMcS2xz5aphXoN1tJ2dNLGTxGCS5Px2JEj-2c9StBtrqxFCYBBLt99jdFCkZvyx9rx2nGBKCIj3ApuMYR-5fQyu7xsDrqlaeDflY9P7Bzlm6eexUzm-gcghUA5UipRjTBhFCcz_fWENXan21RULoApMZB1COoHZcE46FBEgOh4OmVE210l7dJkxhlAPyuXHvefC-xmEFySc0tpvmj3Ct1ek6SkjK5qZVxxID0EaJdBxBxSgkETbFOO19jHxq7I50yKQZx3o"/>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-headline text-lg uppercase tracking-tighter font-semibold">Boost Balance Moon</h3>
+<p class="font-body text-[10px] text-neutral-500 uppercase mt-1">60x120 cm • Qty 24</p>
+</div>
+<div class="text-right">
+<span class="font-body text-base font-medium">67.717 ARS</span>
+</div>
+</div>
+</div>
+<div class="group cursor-pointer">
+<div class="aspect-square bg-neutral-100 overflow-hidden mb-6">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Minimalist nickel PVD kitchen faucet with elegant curved neck and single handle design against a clean background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBxexP6Bbxh5RF9-oRVFGiGb2BnnZXJGALxQC8SrV5dqG9nbumrYNf2o5XsEfZcqzKDjP0Pq-mZDKf-2F0wsC1mO7yZMu3_-aWtXMkPWXaeptJ_L4HkgbfEeDlBzHXJkDencV3BigjkKZaqvLfiIpHDQbksU3erotVPQbL_F_tSKVREHzdB04UxC3e3ZUUpzrtRSo3vgz2GljDhu1GD45MFb_6bn_jVqH6b8L_hLWLJBn8Wg4RzXtQN_--Dp9IGwhsUvZfokjPGShA"/>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-headline text-lg uppercase tracking-tighter font-semibold">Monocomando Bajo Venti 720</h3>
+<p class="font-body text-[10px] text-neutral-500 uppercase mt-1">Nickel Pvd • Qty 1</p>
+</div>
+<div class="text-right">
+<span class="font-body text-base font-medium">2.456.935 ARS</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="w-full h-[1px] bg-neutral-200 mt-32"></div>
+</section>
+<!-- Ambiente 02: Baño Principal -->
+<section class="max-w-screen-2xl mx-auto px-8 md:px-20 mb-32">
+<div class="mb-16">
+<span class="font-body text-[10px] uppercase tracking-[0.4em] text-neutral-500 block mb-2">AMBIENTE 02</span>
+<h2 class="font-headline text-7xl md:text-8xl tight-tracking uppercase font-black mb-4">Baño Principal</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-16">
+<div class="group cursor-pointer">
+<div class="aspect-[4/5] bg-neutral-100 overflow-hidden mb-8">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Sleek white wall-hung toilet and bidet set from Duravit Me by Starck collection in a modern bathroom environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDE0xXXsDtfo_Ar98RWqTzSF1h23PLrFw6_3J-aaf8pGtLFKXmWrB2zwuf5OZyCcg1A7oNfuSMT2cdDnaQTUD8cRxyPXGRr5xWCtSKZc96HJxcKzisIC4i3OotWK-f6f9Ke7YRONS01yQwu_2SRx022nF-SeGivYixs-Zb6YNlRwVm5GC5NZ2gyBJrKrToe40Q1RFQb9GqWTLchI1-KyLvO-5zkaNARcDXc33zCxBOsFS9ePjGwIegjMRI8_Mtbk0gKVyl8WjDbaHo"/>
+</div>
+<div class="flex justify-between items-end border-b border-neutral-100 pb-6">
+<div>
+<h3 class="font-headline text-3xl uppercase tracking-tighter font-semibold mb-2">Inodoro y bidet Duravit Me</h3>
+<p class="font-body text-sm text-neutral-500 uppercase">Design by Starck • Qty 1</p>
+</div>
+<span class="font-body text-2xl font-medium tracking-tight">2.712.045 ARS</span>
+</div>
+</div>
+<div class="group cursor-pointer">
+<div class="aspect-[4/5] bg-neutral-100 overflow-hidden mb-8">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Close up of Tundra Grey natural stone slab showing beautiful organic marble veins and textures in grey tones." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAuGk7frjBrng2CecPVoi3vFwpV7FzJWfbZR2US04jjERgS_XqtxF4ZoBvuouhGUZLOlbYCNQFFyN-fqVeJBKzN2wdJvjhB7jCsKSuJ0jGpiDuT3h3nsWHsBRfn3jfE-sFKjWh45Xg4xesQk4XIC18J-k1RqwbHysdPhS8t7gQ8JIe0PCQorAS2XfCIuG41AX8t7W5F_6wZhC1NN56VO4UDT863q-D2IdH2r6SdFhSxLv9QcdUA-4YVa71JakChBREle-F7AofAObk"/>
+</div>
+<div class="flex justify-between items-end border-b border-neutral-100 pb-6">
+<div>
+<h3 class="font-headline text-3xl uppercase tracking-tighter font-semibold mb-2">Tundra Grey</h3>
+<p class="font-body text-sm text-neutral-500 uppercase">60x120 Mate • Qty 18</p>
+</div>
+<span class="font-body text-2xl font-medium tracking-tight">89.450 ARS</span>
+</div>
+</div>
+</div>
+<div class="w-full h-[1px] bg-neutral-200 mt-32"></div>
+</section>
+<!-- Ambiente 03: Living -->
+<section class="max-w-screen-2xl mx-auto px-8 md:px-20 mb-32">
+<div class="mb-16">
+<span class="font-body text-[10px] uppercase tracking-[0.4em] text-neutral-500 block mb-2">AMBIENTE 03</span>
+<h2 class="font-headline text-7xl md:text-8xl tight-tracking uppercase font-black mb-4">Living</h2>
+</div>
+<div class="group cursor-pointer max-w-5xl">
+<div class="aspect-[16/10] bg-neutral-100 overflow-hidden mb-8">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Wide shot of a luxury living room floor with large Travertine natural stone tiles and elegant modern furniture." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD2njUe8DyX99V7_MXqcKfAu4xFEh91pPLvkeNoaDZzIDIkL75sntMUxLxxlEzOIy5QpcTkBFnHElheVR_VvnH97gjqCStkqhy4KrT0dh6PS_JzAvJ3y6tsYgObDjjthJmjiy6suYDRHTcCVE-FHLUbY3LAalYXQur1xyzPoz0Qy7rz1h29n5zSUhmMnstlWUnxbc4snaiRxYMdI8olPWmsIufFN4AP7PS5CF41iALNMbWqBgNB9ZG52lG_96QPsQPmeyiaAkndGsw"/>
+</div>
+<div class="flex flex-col md:flex-row justify-between md:items-end border-b border-neutral-100 pb-6">
+<div>
+<h3 class="font-headline text-4xl uppercase tracking-tighter font-semibold mb-2">Travertino al agua</h3>
+<p class="font-body text-base text-neutral-500 uppercase">Piso natural • Qty 32</p>
+</div>
+<div class="mt-4 md:mt-0 text-right">
+<span class="font-body text-3xl font-medium tracking-tight">134.200 ARS</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Sticky Bottom Bar -->
+<footer class="fixed bottom-0 w-full z-50 bg-[#f5f1ea] border-t border-neutral-300 px-8 py-6">
+<div class="max-w-screen-2xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+<div class="font-body font-medium text-lg">
+        Total: <span class="font-bold">ARS 14.892.560</span> <span class="text-neutral-400 mx-3">·</span> <span class="text-neutral-500">23 productos</span>
+</div>
+<div class="flex gap-4 w-full md:w-auto">
+<button class="flex-1 md:flex-none border border-brand-dark px-10 py-4 font-body text-xs uppercase tracking-widest font-bold hover:bg-brand-dark hover:text-white transition-all">
+          Compartir proyecto
+        </button>
+<button class="flex-1 md:flex-none bg-brand-dark text-white px-10 py-4 font-body text-xs uppercase tracking-widest font-bold hover:opacity-90 transition-all">
+          Agregar todo al carrito
+        </button>
+</div>
+</div>
+</footer>
+<!-- BottomNavBar (JSON Authority - Mobile Only) -->
+<div class="md:hidden">
+<nav class="fixed bottom-0 w-full z-[60] flex justify-around items-center h-16 px-6 pb-safe bg-[#faf7f2]/95 dark:bg-[#1a1814]/95 backdrop-blur-md border-t border-neutral-200 dark:border-neutral-800">
+<div class="flex flex-col items-center justify-center text-neutral-400 dark:text-neutral-600 font-['Montserrat'] text-[10px] uppercase tracking-widest font-medium hover:opacity-80 transition-transform duration-150 active:scale-[0.98]">
+<span class="material-symbols-outlined mb-1">auto_awesome</span>
+        Inspiración
+      </div>
+<div class="flex flex-col items-center justify-center text-[#1a1814] dark:text-[#f5f1ea] font-bold font-['Montserrat'] text-[10px] uppercase tracking-widest hover:opacity-80 transition-transform duration-150 active:scale-[0.98]">
+<span class="material-symbols-outlined mb-1">receipt_long</span>
+        Presupuesto
+      </div>
+<div class="flex flex-col items-center justify-center text-neutral-400 dark:text-neutral-600 font-['Montserrat'] text-[10px] uppercase tracking-widest font-medium hover:opacity-80 transition-transform duration-150 active:scale-[0.98]">
+<span class="material-symbols-outlined mb-1">person</span>
+        Perfil
+      </div>
+</nav>
+</div>
+</body></html>

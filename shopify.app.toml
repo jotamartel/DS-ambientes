@@ -1,27 +1,23 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
-client_id = "your-client-id"
-name = "DS Ambientes"
-handle = "ds-ambientes"
-application_url = "https://your-app-url.trycloudflare.com"
-embedded = true
-
-[access_scopes]
-scopes = "read_products,write_draft_orders,read_customers"
-
-[auth]
-redirect_urls = [
-  "https://your-app-url.trycloudflare.com/auth/callback",
-  "https://your-app-url.trycloudflare.com/auth/shopify/callback",
-  "https://your-app-url.trycloudflare.com/api/auth/callback"
-]
-
-[webhooks]
-api_version = "2024-04"
-
-[pos]
+client_id = "0fbf69f1998bfa24148bfdf913e7c006"
+name = "DS Ambientes Projects"
+application_url = "https://ds-ambientes.vercel.app"
 embedded = false
 
-[build]
-automatically_update_urls_on_dev = true
-dev_store_url = "iss-chatbot-dsforma.myshopify.com"
+[webhooks]
+api_version = "2026-04"
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "read_products,unauthenticated_read_product_listings"
+optional_scopes = [ ]
+use_legacy_install_flow = false
+
+[auth]
+redirect_urls = [ "https://ds-ambientes.vercel.app/auth/callback" ]
+
+[app_proxy]
+url = "https://ds-ambientes.vercel.app/apps/projects"
+subpath = "projects"
+prefix = "apps"

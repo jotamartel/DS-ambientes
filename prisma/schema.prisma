@@ -7,6 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Required by @shopify/shopify-app-session-storage-prisma
 model Session {
   id            String    @id
   shop          String
@@ -26,53 +27,59 @@ model Session {
 }
 
 model Project {
-  id          String   @id @default(cuid())
-  shop        String
-  name        String
+  id         String  @id @default(cuid())
+  shop       String
+  // Shopify customer GID (gid://shopify/Customer/...). Null when a sales rep creates
+  // a project without linking it to a registered customer (showroom walk-in).
+  customerId String?
+  name       String
+  archived   Boolean @default(false)
+  shareToken String? @unique
+
+  // Optional sales-rep metadata. Used only when a project is built on behalf of
+  // a non-registered or anonymous client. Ignored for customer-owned projects.
   clientName  String?
   clientEmail String?
   clientPhone String?
-  status      String   @default("draft") // draft, active, completed, cancelled
-  assignedTo  String?  // vendedor asignado
-  notes       String?  // notas generales del proyecto
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  lists       List[]
-  shareToken  String?  @unique
+  notes       String?
+
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  environments Environment[]
 
   @@index([shop])
-  @@index([status])
-  @@index([shareToken])
+  @@index([shop, customerId])
+  @@index([shop, archived])
 }
 
-model List {
-  id        String     @id @default(cuid())
+model Environment {
+  id        String        @id @default(cuid())
   projectId String
-  project   Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  name      String     // "Baño Principal", "Cocina", etc.
-  order     Int        @default(0)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  items     ListItem[]
+  project   Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name      String
+  sortOrder Int           @default(0)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  items     ProjectItem[]
 
-  @@index([projectId])
+  @@index([projectId, sortOrder])
 }
 
-model ListItem {
-  id               String   @id @default(cuid())
-  listId           String
-  list             List     @relation(fields: [listId], references: [id], onDelete: Cascade)
-  shopifyProductId String
-  shopifyVariantId String
-  productTitle     String   // cached product title
-  variantTitle     String?  // cached variant title
-  productImage     String?  // cached product image URL
-  quantity         Int      @default(1)
-  comment          String?  // nota del vendedor
-  unitPrice        Decimal  // precio al momento de agregar
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+model ProjectItem {
+  id            String      @id @default(cuid())
+  environmentId String
+  environment   Environment @relation(fields: [environmentId], references: [id], onDelete: Cascade)
+  // Shopify GIDs — full form (gid://shopify/Product/123, gid://shopify/ProductVariant/456)
+  productId     String
+  variantId     String
+  // Cached product handle so we can fetch /products/<handle>.json directly
+  // instead of scanning paginated /products.json. Optional — old items may
+  // not have it; the live-fetch helper falls back to the scan in that case.
+  productHandle String?
+  quantity      Int         @default(1)
+  note          String?
+  addedAt       DateTime    @default(now())
 
-  @@index([listId])
-  @@index([shopifyProductId])
+  @@index([environmentId])
+  @@index([variantId])
 }

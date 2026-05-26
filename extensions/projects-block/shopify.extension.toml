@@ -1,0 +1,7 @@
+api_version = "2024-10"
+
+[[extensions]]
+uid = "c392d546-eb8e-faac-564c-5b37113872b53a5c5003"
+type = "theme"
+name = "DS Ambientes Projects"
+handle = "projects-block"

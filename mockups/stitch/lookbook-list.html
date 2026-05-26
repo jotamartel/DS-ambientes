@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&amp;family=Montserrat:wght@400;500;600&amp;family=Public+Sans:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {},
+            borderRadius: {
+              "DEFAULT": "0.125rem",
+              "lg": "0.25rem",
+              "xl": "0.5rem",
+              "full": "0.75rem"
+            },
+            fontFamily: {
+              "headline": ["Bricolage Grotesque", "Public Sans", "sans-serif"],
+              "display": ["Bricolage Grotesque", "Public Sans", "sans-serif"],
+              "body": ["Montserrat", "sans-serif"],
+              "label": ["Montserrat", "sans-serif"]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        body {
+            background-color: #f5f1ea;
+            color: #1a1814;
+            font-family: 'Montserrat', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        .bricolage {
+            font-family: 'Bricolage_Grotesque', 'Bricolage Grotesque', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .project-card-image {
+            aspect-ratio: 4/5;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body class="bg-[#f5f1ea] text-[#1a1814] selection:bg-[#1a1814] selection:text-white">
+<!-- TopNavBar -->
+<header class="bg-[#f5f1ea] dark:bg-[#1a1814] text-[#1a1814] dark:text-[#f5f1ea] docked full-width top-0 border-b border-[#1a1814]/10 dark:border-white/10 flat no shadows z-50 sticky">
+<div class="flex justify-between items-center w-full px-8 md:px-16 h-24 max-w-screen-2xl mx-auto">
+<div class="text-2xl font-bold font-['Bricolage_Grotesque'] tracking-tighter text-[#1a1814] dark:text-[#f5f1ea] lowercase">
+                ds forma
+            </div>
+<nav class="hidden md:flex items-center gap-10">
+<a class="font-['Bricolage_Grotesque'] font-semibold tracking-tighter uppercase text-sm text-[#1a1814]/60 dark:text-[#f5f1ea]/60 hover:text-[#1a1814] dark:hover:text-[#f5f1ea] transition-all duration-300 ease-in-out cursor-pointer active:opacity-70" href="#">MENU</a>
+<a class="font-['Bricolage_Grotesque'] font-semibold tracking-tighter uppercase text-sm text-[#1a1814]/60 dark:text-[#f5f1ea]/60 hover:text-[#1a1814] dark:hover:text-[#f5f1ea] transition-all duration-300 ease-in-out cursor-pointer active:opacity-70" href="#">NOSOTROS</a>
+<a class="font-['Bricolage_Grotesque'] font-semibold tracking-tighter uppercase text-sm text-[#1a1814]/60 dark:text-[#f5f1ea]/60 hover:text-[#1a1814] dark:hover:text-[#f5f1ea] transition-all duration-300 ease-in-out cursor-pointer active:opacity-70" href="#">DÓNDE ESTAMOS</a>
+</nav>
+<div class="flex items-center gap-6">
+<button class="cursor-pointer active:opacity-70 transition-all duration-300 hover:scale-110">
+<span class="material-symbols-outlined">storefront</span>
+</button>
+<button class="cursor-pointer active:opacity-70 transition-all duration-300 hover:scale-110">
+<span class="material-symbols-outlined">person</span>
+</button>
+<button class="cursor-pointer active:opacity-70 transition-all duration-300 hover:scale-110">
+<span class="material-symbols-outlined">shopping_cart</span>
+</button>
+</div>
+</div>
+</header>
+<main class="max-w-screen-2xl mx-auto px-8 md:px-16 py-16 md:py-24">
+<!-- Hero Section -->
+<section class="flex flex-col md:flex-row justify-between items-end gap-8 mb-24">
+<div class="max-w-2xl">
+<h1 class="text-6xl md:text-8xl font-bold font-['Bricolage_Grotesque'] tracking-tighter leading-none mb-6">
+                    Mis Proyectos
+                </h1>
+<p class="font-['Montserrat'] text-lg md:text-xl text-[#1a1814]/70 max-w-md">
+                    Espacios curados para tu próximo proyecto. Una selección editorial de materiales y ambientes.
+                </p>
+</div>
+<div>
+<button class="bg-[#1a1814] text-white px-8 py-4 rounded-none font-['Montserrat'] font-semibold text-sm uppercase tracking-widest hover:bg-[#1a1814]/90 transition-colors flex items-center gap-3">
+<span class="material-symbols-outlined text-lg">add</span>
+                    Nuevo proyecto
+                </button>
+</div>
+</section>
+<!-- Project Grid -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-20">
+<!-- Project 01 -->
+<article class="group cursor-pointer">
+<div class="overflow-hidden mb-8 relative">
+<img alt="Casa Lomas" class="project-card-image w-full grayscale-[30%] group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105" data-alt="Modern architectural interior with light wood flooring, white walls, and large windows overlooking a garden with natural morning light." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAm9WCGEnaBNN6Eu4WmTU2pn9eoBBBj3u8-8AUQPOf3JbYq_MFnXdIMEKHiVAbIH9A8hwfd1yVkLsLxZoRq_dS3M2LOb3-QjBAoeUgNwbzHdMy9UDpcouOusG9eI-xYdhNSz1YvQoFNaYFwmG18jNZweDM9Sea3SObZOp9nVnQ14ml3aLWNYar0lhK8CF8m0EmjdJGL40pVmzoBIRsOXC-4ygrKOrrtqL_7R36z0qPHcwiDqadtMahGNXe3Dm25_ToSR_Y0ieaNtvs"/>
+<div class="absolute inset-0 bg-[#1a1814]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+</div>
+<header class="space-y-4">
+<p class="font-['Bricolage_Grotesque'] text-sm tracking-tighter text-[#1a1814]/40">01 / 04</p>
+<h2 class="text-3xl font-bold font-['Bricolage_Grotesque'] tracking-tighter leading-tight">
+                        Casa Lomas — Reforma Integral
+                    </h2>
+<div class="w-full h-px bg-[#1a1814]/10"></div>
+<footer class="font-['Montserrat'] text-[12px] uppercase tracking-wider text-[#1a1814]/60 flex items-center justify-between">
+<span>5 ambientes · 23 productos</span>
+<span>Hace 2 días</span>
+</footer>
+</header>
+</article>
+<!-- Project 02 -->
+<article class="group cursor-pointer">
+<div class="overflow-hidden mb-8 relative">
+<img alt="Showroom Recoleta" class="project-card-image w-full grayscale-[30%] group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105" data-alt="Minimalist design showroom with premium natural stone walls and architectural spotlighting highlighting clean textures and neutral tones." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBlBpRbduQ0MMfgHwfcu6Li2_nIBBvj9FmkJIqmmoBdGczX_Rz8jIH17sdQs2lNybg0X5CVlxRKkBO-qR7v4UCKxfm90vNkHtJVyXPHtD3eLYjdvEDNnTrH5N1uGj9VzSPRrIDZ5NqM6HxLwCuWEYhM456kiqxdLMR5IY81VFJlZJQJKZs7HUkbnCCaHRk82HTmp2pUBDqT0N879YHhpVQlSgJsgKdNBRk0-0jnja14wkilLzFMOS4GVP-zizVHmCYzB-laAHonu0Y"/>
+<div class="absolute top-6 right-6">
+<span class="bg-white/90 backdrop-blur-sm px-4 py-2 font-['Montserrat'] text-[10px] font-bold uppercase tracking-widest border border-[#1a1814]/5">
+                            Sales rep
+                        </span>
+</div>
+</div>
+<header class="space-y-4">
+<p class="font-['Bricolage_Grotesque'] text-sm tracking-tighter text-[#1a1814]/40">02 / 04</p>
+<h2 class="text-3xl font-bold font-['Bricolage_Grotesque'] tracking-tighter leading-tight">
+                        Showroom Recoleta — Cliente Schiavoni
+                    </h2>
+<div class="w-full h-px bg-[#1a1814]/10"></div>
+<footer class="font-['Montserrat'] text-[12px] uppercase tracking-wider text-[#1a1814]/60 flex items-center justify-between">
+<span>3 ambientes · 11 productos</span>
+<span>Hace 5 días</span>
+</footer>
+</header>
+</article>
+<!-- Project 03 -->
+<article class="group cursor-pointer">
+<div class="overflow-hidden mb-8 relative">
+<img alt="Departamento Pilar" class="project-card-image w-full grayscale-[30%] group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105" data-alt="Contemporary kitchen interior featuring premium dark marble countertops and wood cabinetry with soft architectural lighting and minimal accessories." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBPYbE5hsg8RLRcVTa-uYCtpOSA1Og2_v_vp9lbwE5JE8RFzpvgVoOmb3wu1k0etCeTicvGbWfQm18xvrQY1F6hntngFlfjR8eW0P6qEbW1q-BeuzN07YgqHRgJwnBTPGCUHUI2fxvBCdIArjBibnrnq5FtkTwg57J2n2XaBnaxa02SccgoAUuKdwHvwc2gknXTABLBFIIvYEiVwzauH1yR9FDi-CgVV6C_ZMew-qW39M4Ke3Dc_JWXzin_YMifvVehqvtsc-DsTXo"/>
+</div>
+<header class="space-y-4">
+<p class="font-['Bricolage_Grotesque'] text-sm tracking-tighter text-[#1a1814]/40">03 / 04</p>
+<h2 class="text-3xl font-bold font-['Bricolage_Grotesque'] tracking-tighter leading-tight">
+                        Departamento Pilar — Baños y cocina
+                    </h2>
+<div class="w-full h-px bg-[#1a1814]/10"></div>
+<footer class="font-['Montserrat'] text-[12px] uppercase tracking-wider text-[#1a1814]/60 flex items-center justify-between">
+<span>2 ambientes · 8 productos</span>
+<span>Hace 1 semana</span>
+</footer>
+</header>
+</article>
+</section>
+<!-- Inspiration Quote / Section -->
+<section class="mt-40 mb-20 border-t border-[#1a1814]/10 pt-20 text-center">
+<h3 class="font-['Bricolage_Grotesque'] text-4xl md:text-5xl max-w-4xl mx-auto leading-tight tracking-tighter mb-8 italic">
+                "La arquitectura es una forma de plasmar los sueños en piedra, madera y luz."
+            </h3>
+<p class="font-['Montserrat'] uppercase tracking-widest text-xs text-[#1a1814]/40">Curaduría por DS Forma</p>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-[#f5f1ea] dark:bg-[#1a1814] text-[#1a1814] dark:text-[#f5f1ea] full-width border-t border-[#1a1814]/10 dark:border-white/10 mt-20 hairline border-t flat no shadows">
+<div class="flex flex-col md:flex-row justify-between items-center w-full px-16 py-12 gap-8 max-w-screen-2xl mx-auto">
+<div class="font-['Montserrat'] text-xs tracking-widest uppercase text-[#1a1814]/40 dark:text-[#f5f1ea]/40">
+                © 2024 DS Forma. Diseño y Arquitectura.
+            </div>
+<div class="flex flex-wrap justify-center gap-8 md:gap-12">
+<a class="font-['Montserrat'] text-xs tracking-widest uppercase text-[#1a1814]/40 dark:text-[#f5f1ea]/40 hover:text-[#1a1814] dark:hover:text-[#f5f1ea] transition-colors underline-offset-4 hover:underline" href="#">Materiales</a>
+<a class="font-['Montserrat'] text-xs tracking-widest uppercase text-[#1a1814]/40 dark:text-[#f5f1ea]/40 hover:text-[#1a1814] dark:hover:text-[#f5f1ea] transition-colors underline-offset-4 hover:underline" href="#">Proyectos</a>
+<a class="font-['Montserrat'] text-xs tracking-widest uppercase text-[#1a1814]/40 dark:text-[#f5f1ea]/40 hover:text-[#1a1814] dark:hover:text-[#f5f1ea] transition-colors underline-offset-4 hover:underline font-bold" href="#">Puntos de Venta</a>
+<a class="font-['Montserrat'] text-xs tracking-widest uppercase text-[#1a1814]/40 dark:text-[#f5f1ea]/40 hover:text-[#1a1814] dark:hover:text-[#f5f1ea] transition-colors underline-offset-4 hover:underline" href="#">Privacidad</a>
+</div>
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-[#1a1814]/20 hover:text-[#1a1814] cursor-pointer transition-colors">language</span>
+<span class="material-symbols-outlined text-[#1a1814]/20 hover:text-[#1a1814] cursor-pointer transition-colors">mail</span>
+</div>
+</div>
+</footer>
+</body></html>
