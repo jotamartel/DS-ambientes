@@ -1,0 +1,108 @@
+{%- if request.page_type == 'product' -%}
+  <div
+    class="dsa-atp"
+    data-customer-id="{{ customer.id }}"
+    data-product-id="gid://shopify/Product/{{ product.id }}"
+    data-product-handle="{{ product.handle }}"
+    data-variant-id="gid://shopify/ProductVariant/{{ product.selected_or_first_available_variant.id }}"
+    data-redirect-url="{{ block.settings.empty_redirect_url }}"
+    data-i18n-loading="{{ 'atp.loading' | t }}"
+    data-i18n-pick-project="{{ 'atp.pick_project' | t }}"
+    data-i18n-pick-env="{{ 'atp.pick_env' | t }}"
+    data-i18n-done="{{ 'atp.done' | t }}"
+    data-i18n-added="{{ 'atp.added' | t }}"
+    data-i18n-error-load="{{ 'atp.error_load' | t }}"
+    data-i18n-error-load-project="{{ 'atp.error_load_project' | t }}"
+    data-i18n-error-add="{{ 'atp.error_add' | t }}"
+    data-i18n-manage-projects="{{ 'atp.manage_projects' | t }}"
+    data-i18n-empty-projects="{{ 'atp.empty_projects' | t }}"
+    data-i18n-empty-envs="{{ 'atp.empty_envs' | t }}"
+    style="
+      --dsa-atp-bg: {{ block.settings.bg_color }};
+      --dsa-atp-text: {{ block.settings.text_color }};
+      --dsa-atp-btn-bg: {{ block.settings.btn_bg_color }};
+      --dsa-atp-btn-text: {{ block.settings.btn_text_color }};
+    "
+  >
+    {%- if customer == nil -%}
+      <a href="/account/login" class="dsa-atp-btn">{{ 'atp.login_cta' | t }}</a>
+    {%- else -%}
+      <button type="button" class="dsa-atp-btn" data-action="open">
+        {{ 'atp.add_to_project' | t }}
+      </button>
+    {%- endif -%}
+
+    <template data-dsa-tpl="atp-modal">
+      <dialog class="dsa-atp-modal" aria-labelledby="dsa-atp-title">
+        <button type="button" class="dsa-atp-close" data-action="close" aria-label="{{ 'atp.close' | t }}">
+          {% render 'icon-close' %}
+        </button>
+        <div class="dsa-atp-header">
+          <h2 id="dsa-atp-title" class="dsa-atp-title" data-field="title"></h2>
+        </div>
+        <div class="dsa-atp-body" data-field="body"></div>
+        <a class="dsa-atp-manage" data-field="manage" href="#" target="_blank" rel="noopener"></a>
+      </dialog>
+    </template>
+
+    <template data-dsa-tpl="atp-empty">
+      <p class="dsa-atp-empty" data-field="msg"></p>
+    </template>
+
+    <template data-dsa-tpl="atp-list-item">
+      <button type="button" class="dsa-atp-item" data-action="pick">
+        <span class="dsa-atp-item-name" data-field="name"></span>
+        <span class="dsa-atp-item-meta" data-field="meta"></span>
+      </button>
+    </template>
+
+    <template data-dsa-tpl="atp-loading">
+      <p class="dsa-atp-loading">{{ 'atp.loading' | t }}</p>
+    </template>
+
+    <template data-dsa-tpl="atp-error">
+      <p class="dsa-atp-error" data-field="msg"></p>
+    </template>
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Agregar a proyecto",
+  "target": "section",
+  "stylesheet": "add-to-project.css",
+  "javascript": "add-to-project.js",
+  "settings": [
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Fondo del modal",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Texto",
+      "default": "#1f1f1f"
+    },
+    {
+      "type": "color",
+      "id": "btn_bg_color",
+      "label": "Fondo del botón",
+      "default": "#3e5852"
+    },
+    {
+      "type": "color",
+      "id": "btn_text_color",
+      "label": "Texto del botón",
+      "default": "#ffffff"
+    },
+    {
+      "type": "url",
+      "id": "empty_redirect_url",
+      "label": "Página de redirección cuando no hay proyectos / ambientes",
+      "info": "Elegí la página a la que llevamos al cliente cuando no tiene proyectos o el proyecto elegido no tiene ambientes. Si se deja vacío, se usa /pages/mis-proyectos."
+    }
+  ]
+}
+{% endschema %}

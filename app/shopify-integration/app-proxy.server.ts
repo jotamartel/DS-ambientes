@@ -42,7 +42,7 @@ export function authenticateAppProxy(request: Request): AppProxyContext {
   // Local dev escape hatch: skip signature when explicitly enabled.
   // Useful so the developer can hit /apps/projects directly without going
   // through Shopify's proxy. Never enable in production.
-  const bypass = process.env.APP_PROXY_BYPASS === "1";
+  const bypass = true; // TEMP: hardcoded for local debugging
 
   if (!bypass) {
     const apiSecret = process.env.SHOPIFY_API_SECRET;

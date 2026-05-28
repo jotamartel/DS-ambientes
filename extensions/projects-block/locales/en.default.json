@@ -1,3 +1,56 @@
 {
-  "name": "DS Ambientes — Projects"
+  "name": "DS Ambientes — Projects",
+  "modal": {
+    "new_project": "New project",
+    "new_env": "New environment",
+    "name_label": "Project name",
+    "name_placeholder": "E.g. Main living room",
+    "env_name_label": "Environment name",
+    "env_name_placeholder": "E.g. Kitchen",
+    "save": "Save project",
+    "env_save": "Save environment",
+    "close": "Close"
+  },
+  "list": {
+    "ver_detalle": "View details"
+  },
+  "search": {
+    "back": "← My environments",
+    "title": "Add products",
+    "placeholder": "Search products...",
+    "add_product": "Add product",
+    "prompt": "Start typing to search.",
+    "too_short": "Type at least 2 characters.",
+    "busy": "Searching...",
+    "empty": "No results.",
+    "out_of_stock": "Out of stock"
+  },
+  "atp": {
+    "add_to_project": "Add to project",
+    "login_cta": "Log in to add to project",
+    "loading": "Loading...",
+    "close": "Close",
+    "pick_project": "Pick a project",
+    "pick_env": "Pick an environment",
+    "done": "Done!",
+    "added": "Product added to the environment.",
+    "error_load": "Loading error",
+    "error_load_project": "Error loading the project",
+    "error_add": "Error adding the product",
+    "manage_projects": "Manage projects",
+    "empty_projects": "You don't have any projects yet.",
+    "empty_envs": "This project has no environments yet."
+  },
+  "files": {
+    "title": "Project files",
+    "subtitle": "Upload images or PDFs related to your project (max. 10 MB each).",
+    "upload": "Upload file",
+    "uploading": "Uploading {name}...",
+    "empty": "No files yet.",
+    "delete": "Delete file",
+    "confirm_delete": "Delete this file?",
+    "error_size": "File exceeds the 10 MB maximum size.",
+    "error_type": "File type not allowed. Only images and PDF.",
+    "error_upload": "Could not upload the file."
+  }
 }

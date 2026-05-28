@@ -14,11 +14,15 @@ import {
   unarchiveProject,
   updateProject,
 } from "~/services/project.server";
+import { listProjectFiles } from "~/services/file.server";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   try {
     const actor = customerActor(request);
-    const project = await getProject(actor, params.id!);
+    const [project, files] = await Promise.all([
+      getProject(actor, params.id!),
+      listProjectFiles(actor, params.id!),
+    ]);
     const variantLookups = project.environments.flatMap((e) =>
       e.items.map((i) => ({ variantId: i.variantId, productHandle: i.productHandle })),
     );
@@ -86,6 +90,14 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         updatedAt: project.updatedAt,
       },
       environments,
+      files: files.map((f) => ({
+        id: f.id,
+        fileName: f.fileName,
+        url: f.url,
+        mimeType: f.mimeType,
+        sizeBytes: f.sizeBytes,
+        createdAt: f.createdAt,
+      })),
     });
   } catch (err) {
     return errorResponse(err);

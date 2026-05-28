@@ -1,3 +1,56 @@
 {
-  "name": "DS Ambientes — Proyectos"
+  "name": "DS Ambientes — Proyectos",
+  "modal": {
+    "new_project": "Nuevo proyecto",
+    "new_env": "Nuevo ambiente",
+    "name_label": "Nombre del proyecto",
+    "name_placeholder": "Ej: Living principal",
+    "env_name_label": "Nombre del ambiente",
+    "env_name_placeholder": "Ej: Cocina",
+    "save": "Guardar proyecto",
+    "env_save": "Guardar ambiente",
+    "close": "Cerrar"
+  },
+  "list": {
+    "ver_detalle": "Ver detalle"
+  },
+  "search": {
+    "back": "← Mis ambientes",
+    "title": "Agrega productos",
+    "placeholder": "Buscar productos...",
+    "add_product": "Agregar producto",
+    "prompt": "Escribí para buscar productos.",
+    "too_short": "Escribí al menos 2 caracteres.",
+    "busy": "Buscando...",
+    "empty": "Sin resultados.",
+    "out_of_stock": "Sin stock"
+  },
+  "atp": {
+    "add_to_project": "Agregar a proyecto",
+    "login_cta": "Iniciar sesión para agregar a proyecto",
+    "loading": "Cargando...",
+    "close": "Cerrar",
+    "pick_project": "Elegí un proyecto",
+    "pick_env": "Elegí un ambiente",
+    "done": "¡Listo!",
+    "added": "Producto agregado al ambiente.",
+    "error_load": "Error de carga",
+    "error_load_project": "Error al cargar el proyecto",
+    "error_add": "Error al agregar producto",
+    "manage_projects": "Gestionar proyectos",
+    "empty_projects": "Todavía no tenés proyectos.",
+    "empty_envs": "Este proyecto todavía no tiene ambientes."
+  },
+  "files": {
+    "title": "Archivos del proyecto",
+    "subtitle": "Subí imágenes o PDFs relacionados con tu proyecto (máx. 10 MB cada uno).",
+    "upload": "Subir archivo",
+    "uploading": "Subiendo {name}...",
+    "empty": "Todavía no agregaste archivos.",
+    "delete": "Eliminar archivo",
+    "confirm_delete": "¿Eliminar este archivo?",
+    "error_size": "El archivo supera el tamaño máximo de 10 MB.",
+    "error_type": "Tipo de archivo no permitido. Solo imágenes y PDF.",
+    "error_upload": "No se pudo subir el archivo."
+  }
 }
