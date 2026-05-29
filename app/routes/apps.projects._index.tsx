@@ -64,7 +64,13 @@ export default function ProjectsIndex() {
       <ErrorBanner message={actionData?.error} />
 
       <section className="cu-card cu-stack">
-        <Form method="post" reloadDocument action="/apps/projects?index" className="cu-stack">
+        {/* NOTE: action is "/apps/projects" WITHOUT "?index" on purpose.
+            Shopify HMAC-signs the proxied URL including all query params, but bare
+            `?index` (no value) gets stripped somewhere in the browser→Shopify→Vercel
+            roundtrip, so the signature we receive doesn't match and the request 403s.
+            Remix routes the POST to this index action by default since the parent
+            `apps.tsx` route has no action of its own. */}
+        <Form method="post" reloadDocument action="/apps/projects" className="cu-stack">
           <label className="cu-label" htmlFor="new-project-name">Nuevo proyecto</label>
           <input
             id="new-project-name"
