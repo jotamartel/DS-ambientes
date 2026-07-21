@@ -11,6 +11,7 @@ Sistema de gestión de proyectos y ambientes para De Stefano.
 5. [[05-API-Endpoints]] - Documentación de API
 6. [[06-Componentes-UI]] - Componentes de interfaz
 7. [[07-Roadmap]] - Plan de desarrollo y pendientes
+8. [[08-Desarrollo-Local]] - Levantar la app en local contra tiendas de prueba
 
 ## Quick Links
 

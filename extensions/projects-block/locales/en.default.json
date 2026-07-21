@@ -26,18 +26,18 @@
     "out_of_stock": "Out of stock"
   },
   "atp": {
-    "add_to_project": "Add to project",
+    "add_to_project": "Add to your projects",
     "login_cta": "Log in to add to project",
     "loading": "Loading...",
     "close": "Close",
-    "pick_project": "Pick a project",
-    "pick_env": "Pick an environment",
-    "done": "Done!",
+    "title": "My projects",
+    "subtitle": "Choose the project where you want to add it:",
+    "view_detail": "View details",
+    "create_project": "Create a new project",
     "added": "Product added to the environment.",
     "error_load": "Loading error",
     "error_load_project": "Error loading the project",
     "error_add": "Error adding the product",
-    "manage_projects": "Manage projects",
     "empty_projects": "You don't have any projects yet.",
     "empty_envs": "This project has no environments yet."
   },

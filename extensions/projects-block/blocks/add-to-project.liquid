@@ -6,54 +6,83 @@
     data-product-handle="{{ product.handle }}"
     data-variant-id="gid://shopify/ProductVariant/{{ product.selected_or_first_available_variant.id }}"
     data-redirect-url="{{ block.settings.empty_redirect_url }}"
-    data-i18n-loading="{{ 'atp.loading' | t }}"
-    data-i18n-pick-project="{{ 'atp.pick_project' | t }}"
-    data-i18n-pick-env="{{ 'atp.pick_env' | t }}"
-    data-i18n-done="{{ 'atp.done' | t }}"
     data-i18n-added="{{ 'atp.added' | t }}"
     data-i18n-error-load="{{ 'atp.error_load' | t }}"
     data-i18n-error-load-project="{{ 'atp.error_load_project' | t }}"
     data-i18n-error-add="{{ 'atp.error_add' | t }}"
-    data-i18n-manage-projects="{{ 'atp.manage_projects' | t }}"
     data-i18n-empty-projects="{{ 'atp.empty_projects' | t }}"
     data-i18n-empty-envs="{{ 'atp.empty_envs' | t }}"
     style="
       --dsa-atp-bg: {{ block.settings.bg_color }};
       --dsa-atp-text: {{ block.settings.text_color }};
-      --dsa-atp-btn-bg: {{ block.settings.btn_bg_color }};
-      --dsa-atp-btn-text: {{ block.settings.btn_text_color }};
     "
   >
     {%- if customer == nil -%}
-      <a href="/account/login" class="dsa-atp-btn">{{ 'atp.login_cta' | t }}</a>
+      <a href="/account/login" class="button-secondary">{{ 'atp.login_cta' | t }}</a>
     {%- else -%}
-      <button type="button" class="dsa-atp-btn" data-action="open">
+      <button type="button" class="button-secondary" data-action="open">
+        {% render 'icon-plus-thin' %}
         {{ 'atp.add_to_project' | t }}
       </button>
     {%- endif -%}
 
     <template data-dsa-tpl="atp-modal">
-      <dialog class="dsa-atp-modal" aria-labelledby="dsa-atp-title">
+      <dialog class="dsa-atp-drawer" aria-labelledby="dsa-atp-title">
         <button type="button" class="dsa-atp-close" data-action="close" aria-label="{{ 'atp.close' | t }}">
           {% render 'icon-close' %}
         </button>
         <div class="dsa-atp-header">
-          <h2 id="dsa-atp-title" class="dsa-atp-title" data-field="title"></h2>
+          <h2 id="dsa-atp-title" class="dsa-atp-title">{{ 'atp.title' | t }}</h2>
+          <p class="dsa-atp-subtitle">{{ 'atp.subtitle' | t }}</p>
         </div>
         <div class="dsa-atp-body" data-field="body"></div>
-        <a class="dsa-atp-manage" data-field="manage" href="#" target="_blank" rel="noopener"></a>
+        <div class="dsa-atp-footer">
+          <button type="button" class="button" data-action="open-create">{{ 'atp.create_project' | t }}</button>
+        </div>
       </dialog>
+    </template>
+
+    <template data-dsa-tpl="atp-project">
+      <article class="dsa-atp-card">
+        <button type="button" class="dsa-atp-card-head" data-action="pick-project">
+          <span class="dsa-atp-card-icon">{% render 'icon-calendar-filled' %}</span>
+          <span class="dsa-atp-card-titles">
+            <span class="dsa-atp-card-name" data-field="name"></span>
+            <span class="dsa-atp-card-meta" data-field="meta"></span>
+          </span>
+          <span class="dsa-atp-radio"></span>
+        </button>
+        <div class="dsa-atp-envs" data-field="envs" hidden></div>
+        <button type="button" class="button-secondary" data-action="open-create-env" hidden>
+          {{ 'modal.new_env' | t }}
+        </button>
+        <a class="dsa-atp-detail" data-field="detail" href="#" hidden>
+          {{ 'atp.view_detail' | t }}
+          {% render 'icon-arrow-right-filled' %}
+        </a>
+      </article>
+    </template>
+
+    <template data-dsa-tpl="atp-env">
+      <div class="dsa-atp-env">
+        <span class="dsa-atp-env-info">
+          <span class="dsa-atp-env-head">
+            <span class="dsa-atp-env-name" data-field="name"></span>
+            <span class="dsa-atp-env-meta" data-field="meta"></span>
+          </span>
+          <span class="dsa-atp-env-price">
+            <span class="dsa-atp-env-ars" data-field="ars"></span>
+            <span class="dsa-atp-env-usd" data-field="usd"></span>
+          </span>
+        </span>
+        <button type="button" class="dsa-atp-env-add" data-action="add-env" aria-label="{{ 'atp.add_to_project' | t }}">
+          {% render 'icon-plus-thin' %}
+        </button>
+      </div>
     </template>
 
     <template data-dsa-tpl="atp-empty">
       <p class="dsa-atp-empty" data-field="msg"></p>
-    </template>
-
-    <template data-dsa-tpl="atp-list-item">
-      <button type="button" class="dsa-atp-item" data-action="pick">
-        <span class="dsa-atp-item-name" data-field="name"></span>
-        <span class="dsa-atp-item-meta" data-field="meta"></span>
-      </button>
     </template>
 
     <template data-dsa-tpl="atp-loading">
@@ -62,6 +91,54 @@
 
     <template data-dsa-tpl="atp-error">
       <p class="dsa-atp-error" data-field="msg"></p>
+    </template>
+
+    <template data-dsa-tpl="atp-new-project-modal">
+      <dialog class="dsa-atp-modal" aria-labelledby="dsa-atp-project-modal-title">
+        <button type="button" class="dsa-atp-close" data-action="modal-close" aria-label="{{ 'modal.close' | t }}">
+          {% render 'icon-close' %}
+        </button>
+        <h2 class="dsa-atp-modal-title" id="dsa-atp-project-modal-title">{{ 'modal.new_project' | t }}</h2>
+        <form class="dsa-atp-modal-body">
+          <label class="dsa-atp-field">
+            <span class="dsa-atp-field-label">{{ 'modal.name_label' | t }}</span>
+            <input
+              type="text"
+              name="name"
+              class="dsa-atp-field-input"
+              placeholder="{{ 'modal.name_placeholder' | t }}"
+              required
+              maxlength="120"
+              autocomplete="off"
+            />
+          </label>
+          <button type="submit" class="dsa-atp-modal-save">{{ 'modal.save' | t }}</button>
+        </form>
+      </dialog>
+    </template>
+
+    <template data-dsa-tpl="atp-new-env-modal">
+      <dialog class="dsa-atp-modal" aria-labelledby="dsa-atp-env-modal-title">
+        <button type="button" class="dsa-atp-close" data-action="modal-close" aria-label="{{ 'modal.close' | t }}">
+          {% render 'icon-close' %}
+        </button>
+        <h2 class="dsa-atp-modal-title" id="dsa-atp-env-modal-title">{{ 'modal.new_env' | t }}</h2>
+        <form class="dsa-atp-modal-body">
+          <label class="dsa-atp-field">
+            <span class="dsa-atp-field-label">{{ 'modal.env_name_label' | t }}</span>
+            <input
+              type="text"
+              name="name"
+              class="dsa-atp-field-input"
+              placeholder="{{ 'modal.env_name_placeholder' | t }}"
+              required
+              maxlength="80"
+              autocomplete="off"
+            />
+          </label>
+          <button type="submit" class="dsa-atp-modal-save">{{ 'modal.env_save' | t }}</button>
+        </form>
+      </dialog>
     </template>
   </div>
 {%- endif -%}
@@ -84,18 +161,6 @@
       "id": "text_color",
       "label": "Texto",
       "default": "#1f1f1f"
-    },
-    {
-      "type": "color",
-      "id": "btn_bg_color",
-      "label": "Fondo del botón",
-      "default": "#3e5852"
-    },
-    {
-      "type": "color",
-      "id": "btn_text_color",
-      "label": "Texto del botón",
-      "default": "#ffffff"
     },
     {
       "type": "url",

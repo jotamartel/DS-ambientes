@@ -95,6 +95,11 @@
       try {
         const data = await api("GET", "/projects");
         state.projects = data.projects ?? [];
+        const deepLinkId = new URLSearchParams(location.search).get("project");
+        if (deepLinkId && state.projects.some((p) => p.id === deepLinkId)) {
+          await openProject(deepLinkId);
+          return;
+        }
         setView("list");
       } catch (e) {
         state.error = e.message || "Error de carga";
@@ -111,9 +116,9 @@
       }
       const res = await fetch(`/apps/projects/api${path}`, opts);
       const ct = res.headers.get("content-type") || "";
-      const data = ct.includes("application/json") ? await res.json() : null;
-      if (!res.ok) {
-        throw new Error((data && data.error) || `HTTP ${res.status}`);
+      const data = ct.includes("application/json") ? await res.json().catch(() => null) : null;
+      if (!res.ok || !data) {
+        throw new Error((data && data.error) || (res.ok ? "Respuesta inválida del servidor" : `Error ${res.status}`));
       }
       return data;
     }
@@ -605,7 +610,7 @@
             { signal: searchAbort.signal, headers: { Accept: "application/json" } },
           );
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          const data = await res.json();
+          const data = await res.json().catch(() => ({}));
           state.search.results = data.results || [];
           state.search.busy = false;
           updateSearchResultsDom();

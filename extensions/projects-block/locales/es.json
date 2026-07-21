@@ -26,18 +26,18 @@
     "out_of_stock": "Sin stock"
   },
   "atp": {
-    "add_to_project": "Agregar a proyecto",
+    "add_to_project": "Agregá a tus proyectos",
     "login_cta": "Iniciar sesión para agregar a proyecto",
     "loading": "Cargando...",
     "close": "Cerrar",
-    "pick_project": "Elegí un proyecto",
-    "pick_env": "Elegí un ambiente",
-    "done": "¡Listo!",
+    "title": "Mis proyectos",
+    "subtitle": "Elegí el proyecto en el que lo querés agregar:",
+    "view_detail": "Ver detalle",
+    "create_project": "Crear un nuevo proyecto",
     "added": "Producto agregado al ambiente.",
     "error_load": "Error de carga",
     "error_load_project": "Error al cargar el proyecto",
     "error_add": "Error al agregar producto",
-    "manage_projects": "Gestionar proyectos",
     "empty_projects": "Todavía no tenés proyectos.",
     "empty_envs": "Este proyecto todavía no tiene ambientes."
   },
