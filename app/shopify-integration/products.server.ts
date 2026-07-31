@@ -3,6 +3,13 @@ import { storefrontQuery } from "./storefront.server";
 const USD_METAFIELD_NAMESPACE = process.env.USD_METAFIELD_NAMESPACE ?? "ds-forma";
 const USD_METAFIELD_KEY = process.env.USD_METAFIELD_KEY ?? "variant_price_usd_iva";
 
+// Coverage per unit, in m². Products that carry it (pisos, revestimientos)
+// let the customer shop by area instead of by box.
+const RENDIMIENTO_METAFIELD_NAMESPACE =
+  process.env.RENDIMIENTO_METAFIELD_NAMESPACE ?? "calc";
+const RENDIMIENTO_METAFIELD_KEY =
+  process.env.RENDIMIENTO_METAFIELD_KEY ?? "rendimiento_m2";
+
 export type Money = { amount: string; currencyCode: string };
 
 export type LiveVariant = {
@@ -16,6 +23,8 @@ export type LiveVariant = {
   available: boolean;
   imageUrl: string | null;
   imageAlt: string | null;
+  // m² covered per unit. null when the variant has no rendimiento metafield.
+  rendimientoM2: number | null;
 };
 
 export type ProductSearchHit = {
@@ -29,6 +38,7 @@ export type ProductSearchHit = {
     available: boolean;
     price: Money;
     priceUsd: Money | null;
+    rendimientoM2: number | null;
   }>;
 };
 
@@ -60,7 +70,7 @@ function variantIdsFromLookups(variants: VariantLookup[]): string[] {
  * raw user-entered metafields may use Spanish-format comma ("746,57"). We
  * detect by presence of comma to avoid stripping dots from the normalized form.
  */
-function parseDecimal(raw: string | null | undefined): string | null {
+function parseNumeric(raw: string | null | undefined): number | null {
   if (raw == null) return null;
   const trimmed = String(raw).trim();
   if (trimmed.length === 0) return null;
@@ -71,8 +81,21 @@ function parseDecimal(raw: string | null | undefined): string | null {
     ? trimmed.replace(/\./g, "").replace(",", ".")
     : trimmed;
   const num = parseFloat(normalized);
-  if (!Number.isFinite(num)) return null;
-  return num.toFixed(2);
+  return Number.isFinite(num) ? num : null;
+}
+
+function parseDecimal(raw: string | null | undefined): string | null {
+  const num = parseNumeric(raw);
+  return num == null ? null : num.toFixed(2);
+}
+
+/**
+ * Coverage per unit in m². Zero or negative is treated as absent — it would
+ * make the m²→units division meaningless (and blow up as a divisor).
+ */
+function parseRendimiento(raw: string | null | undefined): number | null {
+  const num = parseNumeric(raw);
+  return num != null && num > 0 ? num : null;
 }
 
 const NODES_QUERY = /* GraphQL */ `
@@ -90,7 +113,11 @@ const NODES_QUERY = /* GraphQL */ `
           handle
           featuredImage { url altText }
         }
-        metafield(namespace: "${USD_METAFIELD_NAMESPACE}", key: "${USD_METAFIELD_KEY}") {
+        usdMetafield: metafield(namespace: "${USD_METAFIELD_NAMESPACE}", key: "${USD_METAFIELD_KEY}") {
+          value
+          type
+        }
+        rendimientoMetafield: metafield(namespace: "${RENDIMIENTO_METAFIELD_NAMESPACE}", key: "${RENDIMIENTO_METAFIELD_KEY}") {
           value
           type
         }
@@ -111,7 +138,8 @@ type RawVariantNode = {
     handle: string;
     featuredImage?: { url: string; altText: string | null } | null;
   };
-  metafield?: { value: string; type: string } | null;
+  usdMetafield?: { value: string; type: string } | null;
+  rendimientoMetafield?: { value: string; type: string } | null;
 } | null;
 
 /**
@@ -147,7 +175,7 @@ export async function fetchVariantsLive(
         continue;
       }
       const image = node.image ?? node.product.featuredImage ?? null;
-      const usdValue = parseDecimal(node.metafield?.value);
+      const usdValue = parseDecimal(node.usdMetafield?.value);
       result.set(node.id, {
         variantId: node.id,
         productId: node.product.id,
@@ -159,6 +187,7 @@ export async function fetchVariantsLive(
         available: node.availableForSale !== false,
         imageUrl: image?.url ?? null,
         imageAlt: image?.altText ?? null,
+        rendimientoM2: parseRendimiento(node.rendimientoMetafield?.value),
       });
     }
   }
@@ -184,7 +213,11 @@ const PRODUCT_SEARCH_QUERY = /* GraphQL */ `
             title
             availableForSale
             price { amount currencyCode }
-            metafield(namespace: "${USD_METAFIELD_NAMESPACE}", key: "${USD_METAFIELD_KEY}") {
+            usdMetafield: metafield(namespace: "${USD_METAFIELD_NAMESPACE}", key: "${USD_METAFIELD_KEY}") {
+              value
+              type
+            }
+            rendimientoMetafield: metafield(namespace: "${RENDIMIENTO_METAFIELD_NAMESPACE}", key: "${RENDIMIENTO_METAFIELD_KEY}") {
               value
               type
             }
@@ -213,7 +246,8 @@ export async function searchProducts(
             title: string;
             availableForSale: boolean;
             price: Money;
-            metafield: { value: string } | null;
+            usdMetafield: { value: string } | null;
+            rendimientoMetafield: { value: string } | null;
           }>;
         };
       }>;
@@ -226,13 +260,14 @@ export async function searchProducts(
     productHandle: p.handle,
     imageUrl: p.featuredImage?.url ?? null,
     variants: p.variants.nodes.map((v) => {
-      const usdValue = parseDecimal(v.metafield?.value);
+      const usdValue = parseDecimal(v.usdMetafield?.value);
       return {
         variantId: v.id,
         variantTitle: v.title,
         available: v.availableForSale !== false,
         price: v.price,
         priceUsd: usdValue ? { amount: usdValue, currencyCode: "USD" } : null,
+        rendimientoM2: parseRendimiento(v.rendimientoMetafield?.value),
       };
     }),
   }));

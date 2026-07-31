@@ -19,7 +19,16 @@
       errorAdd: root.dataset.i18nErrorAdd,
       emptyProjects: root.dataset.i18nEmptyProjects,
       emptyEnvs: root.dataset.i18nEmptyEnvs,
+      qtyRendimiento: root.dataset.i18nQtyRendimiento,
+      qtyWaste: root.dataset.i18nQtyWaste,
+      qtyCoverage: root.dataset.i18nQtyCoverage,
+      qtyLeftover: root.dataset.i18nQtyLeftover,
     };
+
+    // m² covered per unit. Absent/zero/negative means this product is not
+    // sold by area, and the modal falls back to a plain units prompt.
+    const rendimientoM2 = positiveNumber(root.dataset.rendimientoM2);
+    const wastePct = clampWaste(root.dataset.wastePct);
 
     let drawer = null;
     let selectedId = null;
@@ -214,22 +223,163 @@
       return `${n} ambiente${n === 1 ? "" : "s"}`;
     }
 
-    async function addToEnv(projectId, environmentId, btn) {
-      btn.disabled = true;
-      try {
-        await api("POST", `/projects/${projectId}/items`, {
-          intent: "add",
-          environmentId,
-          productId,
-          variantId,
-          productHandle,
-          quantity: 1,
+    function addToEnv(projectId, environmentId, btn) {
+      openQtyModal(async ({ quantity, targetM2, wastePctUsed }) => {
+        btn.disabled = true;
+        try {
+          await api("POST", `/projects/${projectId}/items`, {
+            intent: "add",
+            environmentId,
+            productId,
+            variantId,
+            productHandle,
+            quantity,
+            targetM2,
+            wastePct: wastePctUsed,
+          });
+          bodyEl().replaceChildren(textNode("p", "dsa-atp-success", i18n.added));
+          setTimeout(closeDrawer, 1500);
+        } catch (err) {
+          btn.disabled = false;
+          showError(err.message || i18n.errorAdd);
+        }
+      });
+    }
+
+    /**
+     * Ask how much to add before creating the item.
+     *
+     * Products carrying a rendimiento metafield get an extra "m² to cover"
+     * field that drives the units count (rounded up — you cannot buy a
+     * fraction of a box), plus an optional waste margin. Everything else
+     * gets a plain units prompt.
+     */
+    function openQtyModal(onConfirm) {
+      if (activeModal) return;
+      activeModal = cloneTplFirst("atp-qty-modal");
+      root.appendChild(activeModal);
+
+      const modal = activeModal;
+      const closeBtn = modal.querySelector("[data-action='modal-close']");
+      if (closeBtn) closeBtn.addEventListener("click", (e) => { e.preventDefault(); closeActiveModal(); });
+      modal.addEventListener("click", (e) => { if (e.target === modal) closeActiveModal(); });
+      modal.addEventListener("close", () => {
+        if (activeModal === modal) { modal.remove(); activeModal = null; }
+      });
+
+      const form = modal.querySelector("form");
+      const qtyInput = form.elements.quantity;
+      const m2Input = form.elements.m2;
+      const wasteInput = form.elements.waste;
+      const areaEl = modal.querySelector("[data-field='area']");
+      const summaryEl = modal.querySelector("[data-field='summary']");
+
+      // Only set while the customer drives the calculation from the area
+      // field. Typing units directly clears it, so we never persist an area
+      // the customer no longer asked for.
+      let targetM2 = null;
+
+      if (rendimientoM2 != null) {
+        areaEl.hidden = false;
+        modal.querySelector("[data-field='rendimiento']").textContent =
+          fillTemplate(i18n.qtyRendimiento, { value: formatNumber(rendimientoM2) });
+
+        const wasteRow = wasteInput.closest(".dsa-qty-waste");
+        if (wastePct > 0) {
+          modal.querySelector("[data-field='waste-label']").textContent =
+            fillTemplate(i18n.qtyWaste, { pct: String(wastePct) });
+        } else if (wasteRow) {
+          wasteRow.hidden = true;
+        }
+
+        const recalcFromArea = () => {
+          targetM2 = positiveNumber(m2Input.value);
+          if (targetM2 != null) qtyInput.value = String(unitsFor(targetM2, wasteInput.checked));
+          updateSummary();
+        };
+        m2Input.addEventListener("input", recalcFromArea);
+        wasteInput.addEventListener("change", recalcFromArea);
+
+        qtyInput.addEventListener("input", () => {
+          targetM2 = null;
+          m2Input.value = "";
+          updateSummary();
         });
-        bodyEl().replaceChildren(textNode("p", "dsa-atp-success", i18n.added));
-        setTimeout(closeDrawer, 1500);
-      } catch (err) {
-        btn.disabled = false;
-        showError(err.message || i18n.errorAdd);
+      } else {
+        areaEl.remove();
+      }
+
+      function unitsFor(m2, withWaste) {
+        const needed = withWaste ? m2 * (1 + wastePct / 100) : m2;
+        // Epsilon guards float noise so 11.52 / 2.88 stays 4 and not 5.
+        const units = Math.ceil(needed / rendimientoM2 - 1e-9);
+        return Math.min(9999, Math.max(1, units));
+      }
+
+      function updateSummary() {
+        if (rendimientoM2 == null) return;
+        const qty = parseInt(qtyInput.value, 10);
+        if (!Number.isFinite(qty) || qty < 1) { summaryEl.hidden = true; return; }
+        const coverage = qty * rendimientoM2;
+        let text = fillTemplate(i18n.qtyCoverage, {
+          qty: String(qty),
+          m2: formatNumber(coverage),
+        });
+        if (targetM2 != null && coverage > targetM2) {
+          text += fillTemplate(i18n.qtyLeftover, { m2: formatNumber(coverage - targetM2) });
+        }
+        summaryEl.textContent = text;
+        summaryEl.hidden = false;
+      }
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const quantity = parseInt(qtyInput.value, 10);
+        if (!Number.isFinite(quantity) || quantity < 1) return;
+        const submit = form.querySelector("button[type='submit']");
+        submit.disabled = true;
+        try {
+          closeActiveModal();
+          await onConfirm({
+            quantity: Math.min(9999, quantity),
+            targetM2,
+            wastePctUsed: targetM2 != null && wasteInput.checked ? wastePct : null,
+          });
+        } catch (err) {
+          submit.disabled = false;
+          alert(err.message || i18n.errorAdd);
+        }
+      });
+
+      modal.showModal();
+      const focusTarget = rendimientoM2 != null ? m2Input : qtyInput;
+      setTimeout(() => { focusTarget.focus(); focusTarget.select(); }, 0);
+    }
+
+    function positiveNumber(raw) {
+      if (raw == null) return null;
+      // Accept both "2.88" and the Spanish "2,88" a customer may type.
+      const n = parseFloat(String(raw).trim().replace(",", "."));
+      return Number.isFinite(n) && n > 0 ? n : null;
+    }
+
+    function clampWaste(raw) {
+      const n = parseInt(String(raw ?? "").trim(), 10);
+      if (!Number.isFinite(n) || n < 0) return 10;
+      return Math.min(100, n);
+    }
+
+    function fillTemplate(tpl, vars) {
+      return String(tpl || "").replace(/\{(\w+)\}/g, (m, k) =>
+        Object.prototype.hasOwnProperty.call(vars, k) ? vars[k] : m,
+      );
+    }
+
+    function formatNumber(value) {
+      try {
+        return new Intl.NumberFormat("es-AR", { maximumFractionDigits: 2 }).format(value);
+      } catch (_) {
+        return String(Math.round(value * 100) / 100);
       }
     }
 

@@ -93,6 +93,13 @@ model ProjectItem {
   // not have it; the live-fetch helper falls back to the scan in that case.
   productHandle String?
   quantity      Int         @default(1)
+  // For products sold by coverage (calc.rendimiento_m2): the area the customer
+  // actually asked for, before rounding up to whole units. Kept so the detail
+  // view can show "10 m² → 4 cajas" and so the intent survives a change in the
+  // product's rendimiento. Null for products not sold by area.
+  targetM2      Float?
+  // Waste margin applied on top of targetM2 when computing quantity (e.g. 10).
+  wastePct      Int?
   note          String?
   addedAt       DateTime    @default(now())
 

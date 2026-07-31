@@ -7,6 +7,19 @@ import { addItem, deleteItem, updateItem } from "~/services/item.server";
 
 const Intent = z.enum(["add", "update", "delete"]);
 
+/**
+ * Read an optional numeric field from a JSON/form body.
+ * Returns `undefined` when the key is absent (leave untouched on update) and
+ * `null` when explicitly cleared — `Number(undefined)` would yield NaN and
+ * `Number(null)` would yield 0, both of which we must not persist.
+ */
+function optionalNumber(raw: unknown): number | null | undefined {
+  if (raw === undefined) return undefined;
+  if (raw === null || raw === "") return null;
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : undefined;
+}
+
 export async function action({ request, params }: ActionFunctionArgs) {
   if (request.method !== "POST") {
     return json({ error: "Method not allowed" }, { status: 405 });
@@ -27,6 +40,8 @@ export async function action({ request, params }: ActionFunctionArgs) {
           variantId: String(body.variantId ?? ""),
           productHandle: handle,
           quantity: Number(body.quantity ?? 1),
+          targetM2: optionalNumber(body.targetM2),
+          wastePct: optionalNumber(body.wastePct),
           note: typeof body.note === "string" && body.note.length > 0 ? body.note : null,
         });
         return json({
@@ -37,6 +52,8 @@ export async function action({ request, params }: ActionFunctionArgs) {
             productId: item.productId,
             productHandle: item.productHandle,
             quantity: item.quantity,
+            targetM2: item.targetM2,
+            wastePct: item.wastePct,
             note: item.note,
           },
         }, { status: 201 });
@@ -47,8 +64,21 @@ export async function action({ request, params }: ActionFunctionArgs) {
         const note = typeof body.note === "string"
           ? (body.note.length > 0 ? body.note : null)
           : undefined;
-        const item = await updateItem(actor, itemId, { quantity: qty, note });
-        return json({ item: { id: item.id, quantity: item.quantity, note: item.note } });
+        const item = await updateItem(actor, itemId, {
+          quantity: qty,
+          targetM2: optionalNumber(body.targetM2),
+          wastePct: optionalNumber(body.wastePct),
+          note,
+        });
+        return json({
+          item: {
+            id: item.id,
+            quantity: item.quantity,
+            targetM2: item.targetM2,
+            wastePct: item.wastePct,
+            note: item.note,
+          },
+        });
       }
       case "delete":
         await deleteItem(actor, String(body.itemId ?? ""));
