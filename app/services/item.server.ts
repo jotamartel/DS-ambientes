@@ -18,17 +18,26 @@ const VariantGid = z
   .trim()
   .regex(/^gid:\/\/shopify\/ProductVariant\/\d+$/, "Invalid variant GID");
 
+// Area the customer asked for, for products sold by coverage. Upper bound is
+// generous on purpose — it only guards against garbage, not against big jobs.
+const TargetM2 = z.number().positive().max(100000).optional().nullable();
+const WastePct = z.number().int().min(0).max(100).optional().nullable();
+
 const AddItemSchema = z.object({
   productId: ProductGid,
   variantId: VariantGid,
   // Optional cached handle to skip the /products.json scan on next render.
   productHandle: z.string().trim().min(1).max(200).optional().nullable(),
   quantity: z.number().int().min(1).max(9999).default(1),
+  targetM2: TargetM2,
+  wastePct: WastePct,
   note: z.string().trim().max(500).optional().nullable(),
 });
 
 const UpdateItemSchema = z.object({
   quantity: z.number().int().min(1).max(9999).optional(),
+  targetM2: TargetM2,
+  wastePct: WastePct,
   note: z.string().trim().max(500).optional().nullable(),
 });
 
@@ -50,6 +59,8 @@ export async function addItem(
       variantId: data.variantId,
       productHandle: data.productHandle ?? null,
       quantity: data.quantity,
+      targetM2: data.targetM2 ?? null,
+      wastePct: data.wastePct ?? null,
       note: data.note ?? null,
     },
   });
@@ -66,6 +77,8 @@ export async function updateItem(
     where: { id: itemId },
     data: {
       ...(data.quantity !== undefined && { quantity: data.quantity }),
+      ...(data.targetM2 !== undefined && { targetM2: data.targetM2 }),
+      ...(data.wastePct !== undefined && { wastePct: data.wastePct }),
       ...(data.note !== undefined && { note: data.note }),
     },
   });

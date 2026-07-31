@@ -41,6 +41,16 @@
     "empty_projects": "Todavía no tenés proyectos.",
     "empty_envs": "Este proyecto todavía no tiene ambientes."
   },
+  "qty": {
+    "title": "¿Cuánto necesitás?",
+    "units_label": "Unidades",
+    "m2_label": "Metros cuadrados a cubrir",
+    "rendimiento": "Rendimiento: {value} m² por unidad",
+    "waste": "Sumar {pct}% de desperdicio",
+    "coverage": "{qty} un. cubren {m2} m²",
+    "leftover": " · sobran {m2} m²",
+    "submit": "Agregar"
+  },
   "files": {
     "title": "Archivos del proyecto",
     "subtitle": "Subí imágenes o PDFs relacionados con tu proyecto (máx. 10 MB cada uno).",

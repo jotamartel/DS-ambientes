@@ -41,6 +41,7 @@
         "env.cart": "Agregar al carrito",
         "env.no_items": "Sin productos en este ambiente.",
         "item.qty": "Cantidad",
+        "item.coverage": "= {m2} m²",
         "item.save": "Guardar",
         "item.remove": "Quitar",
         "item.unavailable": "Producto no disponible",
@@ -53,6 +54,11 @@
         "search.too_short": "Escribí al menos 2 caracteres.",
         "search.busy": "Buscando...",
         "search.empty": "Sin resultados.",
+        "qty.rendimiento": "Rendimiento: {value} m² por unidad",
+        "qty.waste": "Sumar {pct}% de desperdicio",
+        "qty.coverage": "{qty} un. cubren {m2} m²",
+        "qty.leftover": " · sobran {m2} m²",
+        "qty.error": "No se pudo agregar el producto.",
         "summary.label": "Total · {n} productos",
         "summary.cart_all": "Agregar todo al carrito",
         "confirm.delete_project": "¿Eliminar el proyecto?",
@@ -81,6 +87,12 @@
       error: null,
       pendingQty: {},      // itemId → qty waiting to be saved by user
     };
+
+    const wastePct = (() => {
+      const n = parseInt(String(root.dataset.wastePct ?? "").trim(), 10);
+      if (!Number.isFinite(n) || n < 0) return 10;
+      return Math.min(100, n);
+    })();
 
     bindRootEvents();
     bootstrap();
@@ -501,8 +513,16 @@
       `;
     }
 
+    function coverageLabel(quantity, rendimientoM2) {
+      const qty = Number(quantity) || 0;
+      return fillTemplate(i18n["item.coverage"], {
+        m2: formatNumber(qty * rendimientoM2),
+      });
+    }
+
     function renderItem(item) {
       const live = item.live;
+      const rendimiento = live && live.rendimientoM2 != null ? live.rendimientoM2 : null;
       const priceText = live ? formatPrice(parseFloat(live.price.amount), live.price.currencyCode) : null;
       const usdText = live && live.priceUsd
         ? formatPrice(parseFloat(live.priceUsd.amount), live.priceUsd.currencyCode, 2)
@@ -536,6 +556,10 @@
             <input type="number" class="dsa-item-qty-input" min="1" max="9999"
                    value="${item.quantity}"
                    data-action="item-qty-input" data-id="${esc(item.id)}" />
+            ${rendimiento != null
+              ? `<span class="dsa-item-coverage" data-dsa-coverage="${esc(item.id)}">${esc(coverageLabel(item.quantity, rendimiento))}</span>`
+              : ""
+            }
           </div>
           <div class="dsa-item-save">
             <button type="button" class="dsa-btn dsa-btn-pill-sm"
@@ -722,6 +746,114 @@
       activeModal.close();
     }
 
+    /**
+     * Ask how much to add before creating the item.
+     *
+     * Products carrying a rendimiento metafield get an extra "m² to cover"
+     * field that drives the units count (rounded up — you cannot buy a
+     * fraction of a box), plus an optional waste margin. Everything else
+     * gets a plain units prompt.
+     */
+    function openQtyModal(opts, onConfirm) {
+      if (activeModal) return;
+      const dialog = cloneTplFirst("qty-modal");
+      if (!dialog) return;
+      root.appendChild(dialog);
+      activeModal = dialog;
+
+      const closeBtn = dialog.querySelector('[data-action="modal-close"]');
+      if (closeBtn) closeBtn.addEventListener("click", (e) => { e.preventDefault(); closeModal(); });
+      dialog.addEventListener("click", (e) => { if (e.target === dialog) closeModal(); });
+      dialog.addEventListener("close", () => {
+        if (activeModal === dialog) { dialog.remove(); activeModal = null; }
+      });
+
+      const rendimientoM2 = opts.rendimientoM2;
+      const form = dialog.querySelector("form");
+      const qtyInput = form.elements.quantity;
+      const m2Input = form.elements.m2;
+      const wasteInput = form.elements.waste;
+      const areaEl = dialog.querySelector('[data-field="area"]');
+      const summaryEl = dialog.querySelector('[data-field="summary"]');
+      const productEl = dialog.querySelector('[data-field="product"]');
+
+      if (productEl) productEl.textContent = opts.productLabel || "";
+
+      // Only set while the customer drives the calculation from the area
+      // field. Typing units directly clears it, so we never persist an area
+      // the customer no longer asked for.
+      let targetM2 = null;
+
+      if (rendimientoM2 != null) {
+        areaEl.hidden = false;
+        dialog.querySelector('[data-field="rendimiento"]').textContent =
+          fillTemplate(i18n["qty.rendimiento"], { value: formatNumber(rendimientoM2) });
+
+        const wasteRow = wasteInput.closest(".dsa-qty-waste");
+        if (wastePct > 0) {
+          dialog.querySelector('[data-field="waste-label"]').textContent =
+            fillTemplate(i18n["qty.waste"], { pct: String(wastePct) });
+        } else if (wasteRow) {
+          wasteRow.hidden = true;
+        }
+
+        const recalcFromArea = () => {
+          targetM2 = positiveNumber(m2Input.value);
+          if (targetM2 != null) qtyInput.value = String(unitsFor(targetM2, wasteInput.checked));
+          updateSummary();
+        };
+        m2Input.addEventListener("input", recalcFromArea);
+        wasteInput.addEventListener("change", recalcFromArea);
+
+        qtyInput.addEventListener("input", () => {
+          targetM2 = null;
+          m2Input.value = "";
+          updateSummary();
+        });
+      } else {
+        areaEl.remove();
+      }
+
+      function unitsFor(m2, withWaste) {
+        const needed = withWaste ? m2 * (1 + wastePct / 100) : m2;
+        // Epsilon guards float noise so 11.52 / 2.88 stays 4 and not 5.
+        const units = Math.ceil(needed / rendimientoM2 - 1e-9);
+        return Math.min(9999, Math.max(1, units));
+      }
+
+      function updateSummary() {
+        if (rendimientoM2 == null) return;
+        const qty = parseInt(qtyInput.value, 10);
+        if (!Number.isFinite(qty) || qty < 1) { summaryEl.hidden = true; return; }
+        const coverage = qty * rendimientoM2;
+        let text = fillTemplate(i18n["qty.coverage"], {
+          qty: String(qty),
+          m2: formatNumber(coverage),
+        });
+        if (targetM2 != null && coverage > targetM2) {
+          text += fillTemplate(i18n["qty.leftover"], { m2: formatNumber(coverage - targetM2) });
+        }
+        summaryEl.textContent = text;
+        summaryEl.hidden = false;
+      }
+
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const quantity = parseInt(qtyInput.value, 10);
+        if (!Number.isFinite(quantity) || quantity < 1) return;
+        closeModal();
+        onConfirm({
+          quantity: Math.min(9999, quantity),
+          targetM2,
+          wastePctUsed: targetM2 != null && wasteInput.checked ? wastePct : null,
+        });
+      });
+
+      dialog.showModal();
+      const focusTarget = rendimientoM2 != null ? m2Input : qtyInput;
+      setTimeout(() => { focusTarget.focus(); focusTarget.select(); }, 0);
+    }
+
     async function submitCreateProject(form) {
       const name = String(formData(form).name || "").trim();
       if (!name) return;
@@ -817,6 +949,17 @@
       state.pendingQty[itemId] = qty;
       const saveBtn = app.querySelector(`[data-action="item-qty-save"][data-id="${cssId(itemId)}"]`);
       if (saveBtn) saveBtn.disabled = !Number.isInteger(qty) || qty < 1 || qty === item.quantity;
+
+      // Keep the m² equivalent in step with what is being typed, even before
+      // the change is saved.
+      const rendimiento = item.live && item.live.rendimientoM2 != null ? item.live.rendimientoM2 : null;
+      if (rendimiento == null) return;
+      const coverageEl = app.querySelector(`[data-dsa-coverage="${cssId(itemId)}"]`);
+      if (coverageEl) {
+        coverageEl.textContent = Number.isInteger(qty) && qty >= 1
+          ? coverageLabel(qty, rendimiento)
+          : "";
+      }
     }
 
     let tempCounter = 0;
@@ -951,6 +1094,7 @@
                   price: v.price, priceUsd: v.priceUsd,
                   available: v.available,
                   imageUrl: p.imageUrl, imageAlt: null,
+                  rendimientoM2: v.rendimientoM2 ?? null,
                 };
               }
               break;
@@ -960,22 +1104,37 @@
           const env = state.project.environments.find((e) => e.id === state.search.envId);
           if (!env) return;
 
-          const tempItem = { id: tempId(), variantId, quantity: 1, note: null, live: liveData };
-          env.items.push(tempItem);
-          setView("detail"); render();
+          const productLabel = liveData
+            ? (liveData.variantTitle
+                ? `${liveData.productTitle} — ${liveData.variantTitle}`
+                : liveData.productTitle)
+            : "";
 
-          api("POST", `/projects/${proj().id}/items`, {
-            intent: "add",
-            environmentId: env.id,
-            productId, variantId, productHandle,
-            quantity: 1,
-          }).then((r) => {
-            tempItem.id = r.item.id;
-          }).catch((e) => {
-            const i = env.items.indexOf(tempItem);
-            if (i !== -1) env.items.splice(i, 1);
-            render(); alert(e.message);
-          });
+          openQtyModal(
+            { rendimientoM2: liveData ? liveData.rendimientoM2 : null, productLabel },
+            ({ quantity, targetM2, wastePctUsed }) => {
+              const tempItem = {
+                id: tempId(), variantId, quantity,
+                targetM2, wastePct: wastePctUsed,
+                note: null, live: liveData,
+              };
+              env.items.push(tempItem);
+              setView("detail"); render();
+
+              api("POST", `/projects/${proj().id}/items`, {
+                intent: "add",
+                environmentId: env.id,
+                productId, variantId, productHandle,
+                quantity, targetM2, wastePct: wastePctUsed,
+              }).then((r) => {
+                tempItem.id = r.item.id;
+              }).catch((e) => {
+                const i = env.items.indexOf(tempItem);
+                if (i !== -1) env.items.splice(i, 1);
+                render(); alert(e.message || i18n["qty.error"]);
+              });
+            },
+          );
           return;
         }
 
@@ -1102,6 +1261,25 @@
         .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
     }
     function cssId(s) { return String(s).replace(/(["\\])/g, "\\$1"); }
+
+    function fillTemplate(tpl, vars) {
+      return String(tpl || "").replace(/\{(\w+)\}/g, (m, k) =>
+        Object.prototype.hasOwnProperty.call(vars, k) ? vars[k] : m,
+      );
+    }
+
+    function positiveNumber(raw) {
+      if (raw == null) return null;
+      // Accept both "2.88" and the Spanish "2,88" a customer may type.
+      const n = parseFloat(String(raw).trim().replace(",", "."));
+      return Number.isFinite(n) && n > 0 ? n : null;
+    }
+
+    function formatNumber(value) {
+      try {
+        return new Intl.NumberFormat("es-AR", { maximumFractionDigits: 2 }).format(value);
+      } catch (_) { return String(Math.round(value * 100) / 100); }
+    }
 
     function formatPrice(amount, currency, fractionDigits) {
       const num = Number(amount) || 0;

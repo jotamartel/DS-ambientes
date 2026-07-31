@@ -57,6 +57,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
           id: item.id,
           variantId: item.variantId,
           quantity: item.quantity,
+          targetM2: item.targetM2,
+          wastePct: item.wastePct,
           note: item.note,
           live: v,
         };

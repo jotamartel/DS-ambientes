@@ -648,6 +648,62 @@
   justify-self: end;
 }
 .dsa-item-unavailable { color: var(--dsa-danger); font-size: 12px; margin: 4px 0 0; }
+/* m² equivalent shown next to the units input for products sold by coverage */
+.dsa-item-coverage {
+  font-size: 12px;
+  color: var(--dsa-neutral-500);
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------
+   Quantity / m² modal
+   ------------------------------------------------------------ */
+.dsa-qty-area {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-radius: var(--dsa-radius-sm);
+  background: rgba(62, 88, 82, 0.06);
+}
+.dsa-qty-area[hidden] { display: none; }
+
+.dsa-qty-rendimiento {
+  margin: 0;
+  font-family: var(--dsa-font-body);
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 500;
+  color: var(--dsa-text, #1f1f1f);
+}
+
+.dsa-qty-waste {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--dsa-font-body);
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--dsa-text, #1f1f1f);
+  cursor: pointer;
+}
+.dsa-qty-waste[hidden] { display: none; }
+.dsa-qty-waste input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--dsa-btn-bg, #3e5852);
+  cursor: pointer;
+  flex: none;
+}
+
+.dsa-qty-summary {
+  margin: 0;
+  font-family: var(--dsa-font-body);
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--dsa-neutral-500);
+}
+.dsa-qty-summary[hidden] { display: none; }
 
 /* Sticky total bar (project-level) */
 .dsa-sticky-total {

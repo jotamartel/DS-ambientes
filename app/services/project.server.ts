@@ -159,7 +159,10 @@ export async function duplicateProject(actor: Actor, projectId: string) {
             create: env.items.map((item) => ({
               productId: item.productId,
               variantId: item.variantId,
+              productHandle: item.productHandle,
               quantity: item.quantity,
+              targetM2: item.targetM2,
+              wastePct: item.wastePct,
               note: item.note,
             })),
           },

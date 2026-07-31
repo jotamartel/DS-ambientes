@@ -1,10 +1,14 @@
 {%- if request.page_type == 'product' -%}
+  {%- assign dsa_variant = product.selected_or_first_available_variant -%}
+  {%- assign dsa_rendimiento = dsa_variant.metafields.calc.rendimiento_m2.value -%}
   <div
     class="dsa-atp"
     data-customer-id="{{ customer.id }}"
     data-product-id="gid://shopify/Product/{{ product.id }}"
     data-product-handle="{{ product.handle }}"
-    data-variant-id="gid://shopify/ProductVariant/{{ product.selected_or_first_available_variant.id }}"
+    data-variant-id="gid://shopify/ProductVariant/{{ dsa_variant.id }}"
+    data-rendimiento-m2="{{ dsa_rendimiento }}"
+    data-waste-pct="{{ block.settings.waste_pct | default: 10 }}"
     data-redirect-url="{{ block.settings.empty_redirect_url }}"
     data-i18n-added="{{ 'atp.added' | t }}"
     data-i18n-error-load="{{ 'atp.error_load' | t }}"
@@ -12,6 +16,10 @@
     data-i18n-error-add="{{ 'atp.error_add' | t }}"
     data-i18n-empty-projects="{{ 'atp.empty_projects' | t }}"
     data-i18n-empty-envs="{{ 'atp.empty_envs' | t }}"
+    data-i18n-qty-rendimiento="{{ 'qty.rendimiento' | t }}"
+    data-i18n-qty-waste="{{ 'qty.waste' | t }}"
+    data-i18n-qty-coverage="{{ 'qty.coverage' | t }}"
+    data-i18n-qty-leftover="{{ 'qty.leftover' | t }}"
     style="
       --dsa-atp-bg: {{ block.settings.bg_color }};
       --dsa-atp-text: {{ block.settings.text_color }};
@@ -93,6 +101,61 @@
       <p class="dsa-atp-error" data-field="msg"></p>
     </template>
 
+    <template data-dsa-tpl="atp-qty-modal">
+      <dialog class="dsa-atp-modal dsa-qty-modal" aria-labelledby="dsa-atp-qty-modal-title">
+        <button type="button" class="dsa-atp-close" data-action="modal-close" aria-label="{{ 'modal.close' | t }}">
+          {% render 'icon-close' %}
+        </button>
+        <h2 class="dsa-atp-modal-title" id="dsa-atp-qty-modal-title">{{ 'qty.title' | t }}</h2>
+        <form class="dsa-atp-modal-body">
+          {%- comment -%}
+            The m² fieldset is removed by JS for products without a rendimiento
+            metafield, leaving a plain units prompt.
+          {%- endcomment -%}
+          <div class="dsa-qty-area" data-field="area" hidden>
+            <p class="dsa-qty-rendimiento" data-field="rendimiento"></p>
+            <label class="dsa-atp-field">
+              <span class="dsa-atp-field-label">{{ 'qty.m2_label' | t }}</span>
+              <input
+                type="number"
+                name="m2"
+                class="dsa-atp-field-input"
+                min="0.01"
+                step="0.01"
+                inputmode="decimal"
+                placeholder="0"
+                autocomplete="off"
+              />
+            </label>
+            <label class="dsa-qty-waste">
+              <input type="checkbox" name="waste" />
+              <span data-field="waste-label"></span>
+            </label>
+          </div>
+
+          <label class="dsa-atp-field">
+            <span class="dsa-atp-field-label">{{ 'qty.units_label' | t }}</span>
+            <input
+              type="number"
+              name="quantity"
+              class="dsa-atp-field-input"
+              min="1"
+              max="9999"
+              step="1"
+              inputmode="numeric"
+              value="1"
+              required
+              autocomplete="off"
+            />
+          </label>
+
+          <p class="dsa-qty-summary" data-field="summary" hidden></p>
+
+          <button type="submit" class="dsa-atp-modal-save">{{ 'qty.submit' | t }}</button>
+        </form>
+      </dialog>
+    </template>
+
     <template data-dsa-tpl="atp-new-project-modal">
       <dialog class="dsa-atp-modal" aria-labelledby="dsa-atp-project-modal-title">
         <button type="button" class="dsa-atp-close" data-action="modal-close" aria-label="{{ 'modal.close' | t }}">
@@ -161,6 +224,17 @@
       "id": "text_color",
       "label": "Texto",
       "default": "#1f1f1f"
+    },
+    {
+      "type": "range",
+      "id": "waste_pct",
+      "label": "Margen de desperdicio (%)",
+      "info": "Porcentaje que se ofrece sumar cuando el cliente carga los metros cuadrados a cubrir. Solo aplica a productos con el metacampo de rendimiento.",
+      "min": 0,
+      "max": 30,
+      "step": 1,
+      "unit": "%",
+      "default": 10
     },
     {
       "type": "url",
