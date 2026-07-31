@@ -21,13 +21,16 @@
       emptyEnvs: root.dataset.i18nEmptyEnvs,
       qtyRendimiento: root.dataset.i18nQtyRendimiento,
       qtyWaste: root.dataset.i18nQtyWaste,
-      qtyCoverage: root.dataset.i18nQtyCoverage,
-      qtyLeftover: root.dataset.i18nQtyLeftover,
+      qtyM2Label: root.dataset.i18nQtyM2Label,
+      qtySummaryM2: root.dataset.i18nQtySummaryM2,
+      qtyBoxes: root.dataset.i18nQtyBoxes,
     };
 
-    // m² covered per unit. Absent/zero/negative means this product is not
-    // sold by area, and the modal falls back to a plain units prompt.
+    // Informational only: how much area one box covers.
     const rendimientoM2 = positiveNumber(root.dataset.rendimientoM2);
+    // When the product is sold by area, the number the customer types IS the
+    // quantity in m² — there is no conversion to boxes.
+    const soldByM2 = normalizeUnit(root.dataset.usageUnit) === "m2";
     const wastePct = clampWaste(root.dataset.wastePct);
 
     let drawer = null;
@@ -249,10 +252,10 @@
     /**
      * Ask how much to add before creating the item.
      *
-     * Products carrying a rendimiento metafield get an extra "m² to cover"
-     * field that drives the units count (rounded up — you cannot buy a
-     * fraction of a box), plus an optional waste margin. Everything else
-     * gets a plain units prompt.
+     * Products sold by area (ds-forma.usage_unit = m2) are asked for square
+     * metres — that number IS the quantity — plus an optional waste margin.
+     * Everything else gets a plain units prompt. When a rendimiento is known
+     * it is shown as context, and used to hint how many boxes that area is.
      */
     function openQtyModal(onConfirm) {
       if (activeModal) return;
@@ -269,64 +272,51 @@
 
       const form = modal.querySelector("form");
       const qtyInput = form.elements.quantity;
-      const m2Input = form.elements.m2;
       const wasteInput = form.elements.waste;
-      const areaEl = modal.querySelector("[data-field='area']");
+      const wasteRow = modal.querySelector("[data-field='waste-row']");
       const summaryEl = modal.querySelector("[data-field='summary']");
-
-      // Only set while the customer drives the calculation from the area
-      // field. Typing units directly clears it, so we never persist an area
-      // the customer no longer asked for.
-      let targetM2 = null;
+      const rendimientoEl = modal.querySelector("[data-field='rendimiento']");
 
       if (rendimientoM2 != null) {
-        areaEl.hidden = false;
-        modal.querySelector("[data-field='rendimiento']").textContent =
+        rendimientoEl.textContent =
           fillTemplate(i18n.qtyRendimiento, { value: formatNumber(rendimientoM2) });
+        rendimientoEl.hidden = false;
+      }
 
-        const wasteRow = wasteInput.closest(".dsa-qty-waste");
+      if (soldByM2) {
+        modal.querySelector("[data-field='qty-label']").textContent = i18n.qtyM2Label;
+        // Area can be fractional on the way in; it is rounded up on submit.
+        qtyInput.step = "0.01";
+        qtyInput.inputMode = "decimal";
+
         if (wastePct > 0) {
           modal.querySelector("[data-field='waste-label']").textContent =
             fillTemplate(i18n.qtyWaste, { pct: String(wastePct) });
-        } else if (wasteRow) {
-          wasteRow.hidden = true;
+          wasteRow.hidden = false;
         }
-
-        const recalcFromArea = () => {
-          targetM2 = positiveNumber(m2Input.value);
-          if (targetM2 != null) qtyInput.value = String(unitsFor(targetM2, wasteInput.checked));
-          updateSummary();
-        };
-        m2Input.addEventListener("input", recalcFromArea);
-        wasteInput.addEventListener("change", recalcFromArea);
-
-        qtyInput.addEventListener("input", () => {
-          targetM2 = null;
-          m2Input.value = "";
-          updateSummary();
-        });
-      } else {
-        areaEl.remove();
+        qtyInput.addEventListener("input", updateSummary);
+        wasteInput.addEventListener("change", updateSummary);
       }
 
-      function unitsFor(m2, withWaste) {
-        const needed = withWaste ? m2 * (1 + wastePct / 100) : m2;
-        // Epsilon guards float noise so 11.52 / 2.88 stays 4 and not 5.
-        const units = Math.ceil(needed / rendimientoM2 - 1e-9);
-        return Math.min(9999, Math.max(1, units));
+      // Rounded up: Shopify cart lines are whole numbers, so a request for
+      // 10,5 m² becomes 11 m².
+      function finalQuantity() {
+        const raw = positiveNumber(qtyInput.value);
+        if (raw == null) return null;
+        const withWaste = soldByM2 && wasteInput.checked
+          ? raw * (1 + wastePct / 100)
+          : raw;
+        // Epsilon guards float noise so 11 * 1.0 stays 11 and not 12.
+        return Math.min(9999, Math.max(1, Math.ceil(withWaste - 1e-9)));
       }
 
       function updateSummary() {
-        if (rendimientoM2 == null) return;
-        const qty = parseInt(qtyInput.value, 10);
-        if (!Number.isFinite(qty) || qty < 1) { summaryEl.hidden = true; return; }
-        const coverage = qty * rendimientoM2;
-        let text = fillTemplate(i18n.qtyCoverage, {
-          qty: String(qty),
-          m2: formatNumber(coverage),
-        });
-        if (targetM2 != null && coverage > targetM2) {
-          text += fillTemplate(i18n.qtyLeftover, { m2: formatNumber(coverage - targetM2) });
+        const qty = finalQuantity();
+        if (qty == null) { summaryEl.hidden = true; return; }
+        let text = fillTemplate(i18n.qtySummaryM2, { qty: String(qty) });
+        if (rendimientoM2 != null) {
+          const boxes = Math.ceil(qty / rendimientoM2 - 1e-9);
+          text += fillTemplate(i18n.qtyBoxes, { n: String(boxes) });
         }
         summaryEl.textContent = text;
         summaryEl.hidden = false;
@@ -334,16 +324,18 @@
 
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
-        const quantity = parseInt(qtyInput.value, 10);
-        if (!Number.isFinite(quantity) || quantity < 1) return;
+        const raw = positiveNumber(qtyInput.value);
+        const quantity = finalQuantity();
+        if (quantity == null) return;
         const submit = form.querySelector("button[type='submit']");
         submit.disabled = true;
         try {
           closeActiveModal();
           await onConfirm({
-            quantity: Math.min(9999, quantity),
-            targetM2,
-            wastePctUsed: targetM2 != null && wasteInput.checked ? wastePct : null,
+            quantity,
+            // What the customer actually asked for, before the waste margin.
+            targetM2: soldByM2 ? raw : null,
+            wastePctUsed: soldByM2 && wasteInput.checked ? wastePct : null,
           });
         } catch (err) {
           submit.disabled = false;
@@ -352,8 +344,7 @@
       });
 
       modal.showModal();
-      const focusTarget = rendimientoM2 != null ? m2Input : qtyInput;
-      setTimeout(() => { focusTarget.focus(); focusTarget.select(); }, 0);
+      setTimeout(() => { qtyInput.focus(); qtyInput.select(); }, 0);
     }
 
     function positiveNumber(raw) {
@@ -361,6 +352,12 @@
       // Accept both "2.88" and the Spanish "2,88" a customer may type.
       const n = parseFloat(String(raw).trim().replace(",", "."));
       return Number.isFinite(n) && n > 0 ? n : null;
+    }
+
+    function normalizeUnit(raw) {
+      if (raw == null) return null;
+      const v = String(raw).trim().toLowerCase().replace(/²/g, "2");
+      return v.length > 0 ? v : null;
     }
 
     function clampWaste(raw) {

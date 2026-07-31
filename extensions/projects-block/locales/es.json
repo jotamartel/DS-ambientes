@@ -44,11 +44,11 @@
   "qty": {
     "title": "¿Cuánto necesitás?",
     "units_label": "Unidades",
-    "m2_label": "Metros cuadrados a cubrir",
-    "rendimiento": "Rendimiento: {value} m² por unidad",
+    "m2_label": "Metros cuadrados",
+    "rendimiento": "Rendimiento: {value} m² por caja",
     "waste": "Sumar {pct}% de desperdicio",
-    "coverage": "{qty} un. cubren {m2} m²",
-    "leftover": " · sobran {m2} m²",
+    "summary_m2": "Se agregan {qty} m²",
+    "boxes": " · equivale a {n} cajas",
     "submit": "Agregar"
   },
   "files": {

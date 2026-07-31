@@ -47,8 +47,9 @@
   {%- if customer != nil -%}
 
     {%- comment -%}
-      Asks how much to add before creating the item. The m² fieldset is only
-      revealed for products carrying the calc.rendimiento_m2 metafield.
+      Asks how much to add before creating the item. One input for both cases:
+      JS relabels it to square metres for products sold by area
+      (ds-forma.usage_unit = m2), where the number entered IS the quantity.
     {%- endcomment -%}
     <template data-dsa-tpl="qty-modal">
       <dialog class="dsa-modal dsa-qty-modal" aria-labelledby="dsa-qty-modal-title">
@@ -60,29 +61,10 @@
           <p class="dsa-modal-description" data-field="product"></p>
         </div>
         <form class="dsa-modal-body" onsubmit="return false">
-          <div class="dsa-qty-area" data-field="area" hidden>
-            <p class="dsa-qty-rendimiento" data-field="rendimiento"></p>
-            <label class="dsa-field">
-              <span class="dsa-field-label">{{ 'qty.m2_label' | t }}</span>
-              <input
-                type="number"
-                name="m2"
-                class="dsa-field-input"
-                min="0.01"
-                step="0.01"
-                inputmode="decimal"
-                placeholder="0"
-                autocomplete="off"
-              />
-            </label>
-            <label class="dsa-qty-waste">
-              <input type="checkbox" name="waste" />
-              <span data-field="waste-label"></span>
-            </label>
-          </div>
+          <p class="dsa-qty-rendimiento" data-field="rendimiento" hidden></p>
 
           <label class="dsa-field">
-            <span class="dsa-field-label">{{ 'qty.units_label' | t }}</span>
+            <span class="dsa-field-label" data-field="qty-label">{{ 'qty.units_label' | t }}</span>
             <input
               type="number"
               name="quantity"
@@ -95,6 +77,11 @@
               required
               autocomplete="off"
             />
+          </label>
+
+          <label class="dsa-qty-waste" data-field="waste-row" hidden>
+            <input type="checkbox" name="waste" />
+            <span data-field="waste-label"></span>
           </label>
 
           <p class="dsa-qty-summary" data-field="summary" hidden></p>

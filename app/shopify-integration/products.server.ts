@@ -3,12 +3,19 @@ import { storefrontQuery } from "./storefront.server";
 const USD_METAFIELD_NAMESPACE = process.env.USD_METAFIELD_NAMESPACE ?? "ds-forma";
 const USD_METAFIELD_KEY = process.env.USD_METAFIELD_KEY ?? "variant_price_usd_iva";
 
-// Coverage per unit, in m². Products that carry it (pisos, revestimientos)
-// let the customer shop by area instead of by box.
+// Coverage per unit, in m². Purely informational: shown so the customer knows
+// how much area one box covers. It does NOT drive the quantity.
 const RENDIMIENTO_METAFIELD_NAMESPACE =
   process.env.RENDIMIENTO_METAFIELD_NAMESPACE ?? "calc";
 const RENDIMIENTO_METAFIELD_KEY =
   process.env.RENDIMIENTO_METAFIELD_KEY ?? "rendimiento_m2";
+
+// The unit the product is actually sold in. When it reads "m2" the quantity a
+// customer enters *is* an area, so we ask for square metres instead of units.
+const USAGE_UNIT_METAFIELD_NAMESPACE =
+  process.env.USAGE_UNIT_METAFIELD_NAMESPACE ?? "ds-forma";
+const USAGE_UNIT_METAFIELD_KEY =
+  process.env.USAGE_UNIT_METAFIELD_KEY ?? "usage_unit";
 
 export type Money = { amount: string; currencyCode: string };
 
@@ -25,6 +32,8 @@ export type LiveVariant = {
   imageAlt: string | null;
   // m² covered per unit. null when the variant has no rendimiento metafield.
   rendimientoM2: number | null;
+  // Normalized lowercase, e.g. "m2". null when the metafield is absent.
+  usageUnit: string | null;
 };
 
 export type ProductSearchHit = {
@@ -39,6 +48,7 @@ export type ProductSearchHit = {
     price: Money;
     priceUsd: Money | null;
     rendimientoM2: number | null;
+    usageUnit: string | null;
   }>;
 };
 
@@ -98,6 +108,16 @@ function parseRendimiento(raw: string | null | undefined): number | null {
   return num != null && num > 0 ? num : null;
 }
 
+/**
+ * Normalize the usage unit so "M2", "m2" and " m² " all compare equal.
+ * The superscript ² is folded to a plain 2.
+ */
+function parseUsageUnit(raw: string | null | undefined): string | null {
+  if (raw == null) return null;
+  const v = String(raw).trim().toLowerCase().replace(/²/g, "2");
+  return v.length > 0 ? v : null;
+}
+
 const NODES_QUERY = /* GraphQL */ `
   query VariantsByIds($ids: [ID!]!) {
     nodes(ids: $ids) {
@@ -112,6 +132,12 @@ const NODES_QUERY = /* GraphQL */ `
           title
           handle
           featuredImage { url altText }
+          usageUnitMetafield: metafield(namespace: "${USAGE_UNIT_METAFIELD_NAMESPACE}", key: "${USAGE_UNIT_METAFIELD_KEY}") {
+            value
+          }
+        }
+        usageUnitMetafield: metafield(namespace: "${USAGE_UNIT_METAFIELD_NAMESPACE}", key: "${USAGE_UNIT_METAFIELD_KEY}") {
+          value
         }
         usdMetafield: metafield(namespace: "${USD_METAFIELD_NAMESPACE}", key: "${USD_METAFIELD_KEY}") {
           value
@@ -137,9 +163,11 @@ type RawVariantNode = {
     title: string;
     handle: string;
     featuredImage?: { url: string; altText: string | null } | null;
+    usageUnitMetafield?: { value: string } | null;
   };
   usdMetafield?: { value: string; type: string } | null;
   rendimientoMetafield?: { value: string; type: string } | null;
+  usageUnitMetafield?: { value: string } | null;
 } | null;
 
 /**
@@ -188,6 +216,11 @@ export async function fetchVariantsLive(
         imageUrl: image?.url ?? null,
         imageAlt: image?.altText ?? null,
         rendimientoM2: parseRendimiento(node.rendimientoMetafield?.value),
+        // Defined at product level in the shop, but read variant-first so a
+        // per-variant override keeps working if one is ever added.
+        usageUnit:
+          parseUsageUnit(node.usageUnitMetafield?.value) ??
+          parseUsageUnit(node.product.usageUnitMetafield?.value),
       });
     }
   }
@@ -207,6 +240,9 @@ const PRODUCT_SEARCH_QUERY = /* GraphQL */ `
         title
         handle
         featuredImage { url altText }
+        usageUnitMetafield: metafield(namespace: "${USAGE_UNIT_METAFIELD_NAMESPACE}", key: "${USAGE_UNIT_METAFIELD_KEY}") {
+          value
+        }
         variants(first: 20) {
           nodes {
             id
@@ -220,6 +256,9 @@ const PRODUCT_SEARCH_QUERY = /* GraphQL */ `
             rendimientoMetafield: metafield(namespace: "${RENDIMIENTO_METAFIELD_NAMESPACE}", key: "${RENDIMIENTO_METAFIELD_KEY}") {
               value
               type
+            }
+            usageUnitMetafield: metafield(namespace: "${USAGE_UNIT_METAFIELD_NAMESPACE}", key: "${USAGE_UNIT_METAFIELD_KEY}") {
+              value
             }
           }
         }
@@ -240,6 +279,7 @@ export async function searchProducts(
         title: string;
         handle: string;
         featuredImage: { url: string; altText: string | null } | null;
+        usageUnitMetafield: { value: string } | null;
         variants: {
           nodes: Array<{
             id: string;
@@ -248,6 +288,7 @@ export async function searchProducts(
             price: Money;
             usdMetafield: { value: string } | null;
             rendimientoMetafield: { value: string } | null;
+            usageUnitMetafield: { value: string } | null;
           }>;
         };
       }>;
@@ -268,6 +309,9 @@ export async function searchProducts(
         price: v.price,
         priceUsd: usdValue ? { amount: usdValue, currencyCode: "USD" } : null,
         rendimientoM2: parseRendimiento(v.rendimientoMetafield?.value),
+        usageUnit:
+          parseUsageUnit(v.usageUnitMetafield?.value) ??
+          parseUsageUnit(p.usageUnitMetafield?.value),
       };
     }),
   }));
