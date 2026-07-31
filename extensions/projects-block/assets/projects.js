@@ -41,7 +41,8 @@
         "env.cart": "Agregar al carrito",
         "env.no_items": "Sin productos en este ambiente.",
         "item.qty": "Cantidad",
-        "item.coverage": "= {m2} m²",
+        "item.qty_m2": "m²",
+        "item.boxes": "≈ {n} cajas",
         "item.save": "Guardar",
         "item.remove": "Quitar",
         "item.unavailable": "Producto no disponible",
@@ -54,10 +55,12 @@
         "search.too_short": "Escribí al menos 2 caracteres.",
         "search.busy": "Buscando...",
         "search.empty": "Sin resultados.",
-        "qty.rendimiento": "Rendimiento: {value} m² por unidad",
+        "qty.units_label": "Unidades",
+        "qty.m2_label": "Metros cuadrados",
+        "qty.rendimiento": "Rendimiento: {value} m² por caja",
         "qty.waste": "Sumar {pct}% de desperdicio",
-        "qty.coverage": "{qty} un. cubren {m2} m²",
-        "qty.leftover": " · sobran {m2} m²",
+        "qty.summary_m2": "Se agregan {qty} m²",
+        "qty.boxes": " · equivale a {n} cajas",
         "qty.error": "No se pudo agregar el producto.",
         "summary.label": "Total · {n} productos",
         "summary.cart_all": "Agregar todo al carrito",
@@ -513,16 +516,22 @@
       `;
     }
 
-    function coverageLabel(quantity, rendimientoM2) {
+    /**
+     * For items sold by area the quantity already IS the m², so the hint next
+     * to it is how many boxes that area works out to.
+     */
+    function boxesLabel(quantity, rendimientoM2) {
       const qty = Number(quantity) || 0;
-      return fillTemplate(i18n["item.coverage"], {
-        m2: formatNumber(qty * rendimientoM2),
+      if (qty < 1) return "";
+      return fillTemplate(i18n["item.boxes"], {
+        n: String(Math.ceil(qty / rendimientoM2 - 1e-9)),
       });
     }
 
     function renderItem(item) {
       const live = item.live;
-      const rendimiento = live && live.rendimientoM2 != null ? live.rendimientoM2 : null;
+      const soldByM2 = live && normalizeUnit(live.usageUnit) === "m2";
+      const rendimiento = soldByM2 && live.rendimientoM2 != null ? live.rendimientoM2 : null;
       const priceText = live ? formatPrice(parseFloat(live.price.amount), live.price.currencyCode) : null;
       const usdText = live && live.priceUsd
         ? formatPrice(parseFloat(live.priceUsd.amount), live.priceUsd.currencyCode, 2)
@@ -552,12 +561,12 @@
             </button>
           </div>
           <div class="dsa-item-qty">
-            <span class="dsa-item-qty-label">${esc(i18n["item.qty"])}</span>
+            <span class="dsa-item-qty-label">${esc(soldByM2 ? i18n["item.qty_m2"] : i18n["item.qty"])}</span>
             <input type="number" class="dsa-item-qty-input" min="1" max="9999"
                    value="${item.quantity}"
                    data-action="item-qty-input" data-id="${esc(item.id)}" />
             ${rendimiento != null
-              ? `<span class="dsa-item-coverage" data-dsa-coverage="${esc(item.id)}">${esc(coverageLabel(item.quantity, rendimiento))}</span>`
+              ? `<span class="dsa-item-coverage" data-dsa-coverage="${esc(item.id)}">${esc(boxesLabel(item.quantity, rendimiento))}</span>`
               : ""
             }
           </div>
@@ -749,10 +758,10 @@
     /**
      * Ask how much to add before creating the item.
      *
-     * Products carrying a rendimiento metafield get an extra "m² to cover"
-     * field that drives the units count (rounded up — you cannot buy a
-     * fraction of a box), plus an optional waste margin. Everything else
-     * gets a plain units prompt.
+     * Products sold by area (ds-forma.usage_unit = m2) are asked for square
+     * metres — that number IS the quantity — plus an optional waste margin.
+     * Everything else gets a plain units prompt. When a rendimiento is known
+     * it is shown as context, and used to hint how many boxes that area is.
      */
     function openQtyModal(opts, onConfirm) {
       if (activeModal) return;
@@ -769,69 +778,57 @@
       });
 
       const rendimientoM2 = opts.rendimientoM2;
+      const soldByM2 = normalizeUnit(opts.usageUnit) === "m2";
       const form = dialog.querySelector("form");
       const qtyInput = form.elements.quantity;
-      const m2Input = form.elements.m2;
       const wasteInput = form.elements.waste;
-      const areaEl = dialog.querySelector('[data-field="area"]');
+      const wasteRow = dialog.querySelector('[data-field="waste-row"]');
       const summaryEl = dialog.querySelector('[data-field="summary"]');
       const productEl = dialog.querySelector('[data-field="product"]');
+      const rendimientoEl = dialog.querySelector('[data-field="rendimiento"]');
 
       if (productEl) productEl.textContent = opts.productLabel || "";
 
-      // Only set while the customer drives the calculation from the area
-      // field. Typing units directly clears it, so we never persist an area
-      // the customer no longer asked for.
-      let targetM2 = null;
-
       if (rendimientoM2 != null) {
-        areaEl.hidden = false;
-        dialog.querySelector('[data-field="rendimiento"]').textContent =
+        rendimientoEl.textContent =
           fillTemplate(i18n["qty.rendimiento"], { value: formatNumber(rendimientoM2) });
+        rendimientoEl.hidden = false;
+      }
 
-        const wasteRow = wasteInput.closest(".dsa-qty-waste");
+      if (soldByM2) {
+        dialog.querySelector('[data-field="qty-label"]').textContent = i18n["qty.m2_label"];
+        // Area can be fractional on the way in; it is rounded up on submit.
+        qtyInput.step = "0.01";
+        qtyInput.inputMode = "decimal";
+
         if (wastePct > 0) {
           dialog.querySelector('[data-field="waste-label"]').textContent =
             fillTemplate(i18n["qty.waste"], { pct: String(wastePct) });
-        } else if (wasteRow) {
-          wasteRow.hidden = true;
+          wasteRow.hidden = false;
         }
-
-        const recalcFromArea = () => {
-          targetM2 = positiveNumber(m2Input.value);
-          if (targetM2 != null) qtyInput.value = String(unitsFor(targetM2, wasteInput.checked));
-          updateSummary();
-        };
-        m2Input.addEventListener("input", recalcFromArea);
-        wasteInput.addEventListener("change", recalcFromArea);
-
-        qtyInput.addEventListener("input", () => {
-          targetM2 = null;
-          m2Input.value = "";
-          updateSummary();
-        });
-      } else {
-        areaEl.remove();
+        qtyInput.addEventListener("input", updateSummary);
+        wasteInput.addEventListener("change", updateSummary);
       }
 
-      function unitsFor(m2, withWaste) {
-        const needed = withWaste ? m2 * (1 + wastePct / 100) : m2;
-        // Epsilon guards float noise so 11.52 / 2.88 stays 4 and not 5.
-        const units = Math.ceil(needed / rendimientoM2 - 1e-9);
-        return Math.min(9999, Math.max(1, units));
+      // Rounded up: Shopify cart lines are whole numbers, so a request for
+      // 10,5 m² becomes 11 m².
+      function finalQuantity() {
+        const raw = positiveNumber(qtyInput.value);
+        if (raw == null) return null;
+        const withWaste = soldByM2 && wasteInput.checked
+          ? raw * (1 + wastePct / 100)
+          : raw;
+        // Epsilon guards float noise so 11 * 1.0 stays 11 and not 12.
+        return Math.min(9999, Math.max(1, Math.ceil(withWaste - 1e-9)));
       }
 
       function updateSummary() {
-        if (rendimientoM2 == null) return;
-        const qty = parseInt(qtyInput.value, 10);
-        if (!Number.isFinite(qty) || qty < 1) { summaryEl.hidden = true; return; }
-        const coverage = qty * rendimientoM2;
-        let text = fillTemplate(i18n["qty.coverage"], {
-          qty: String(qty),
-          m2: formatNumber(coverage),
-        });
-        if (targetM2 != null && coverage > targetM2) {
-          text += fillTemplate(i18n["qty.leftover"], { m2: formatNumber(coverage - targetM2) });
+        const qty = finalQuantity();
+        if (qty == null) { summaryEl.hidden = true; return; }
+        let text = fillTemplate(i18n["qty.summary_m2"], { qty: String(qty) });
+        if (rendimientoM2 != null) {
+          const boxes = Math.ceil(qty / rendimientoM2 - 1e-9);
+          text += fillTemplate(i18n["qty.boxes"], { n: String(boxes) });
         }
         summaryEl.textContent = text;
         summaryEl.hidden = false;
@@ -839,19 +836,20 @@
 
       form.addEventListener("submit", (e) => {
         e.preventDefault();
-        const quantity = parseInt(qtyInput.value, 10);
-        if (!Number.isFinite(quantity) || quantity < 1) return;
+        const raw = positiveNumber(qtyInput.value);
+        const quantity = finalQuantity();
+        if (quantity == null) return;
         closeModal();
         onConfirm({
-          quantity: Math.min(9999, quantity),
-          targetM2,
-          wastePctUsed: targetM2 != null && wasteInput.checked ? wastePct : null,
+          quantity,
+          // What the customer actually asked for, before the waste margin.
+          targetM2: soldByM2 ? raw : null,
+          wastePctUsed: soldByM2 && wasteInput.checked ? wastePct : null,
         });
       });
 
       dialog.showModal();
-      const focusTarget = rendimientoM2 != null ? m2Input : qtyInput;
-      setTimeout(() => { focusTarget.focus(); focusTarget.select(); }, 0);
+      setTimeout(() => { qtyInput.focus(); qtyInput.select(); }, 0);
     }
 
     async function submitCreateProject(form) {
@@ -950,14 +948,15 @@
       const saveBtn = app.querySelector(`[data-action="item-qty-save"][data-id="${cssId(itemId)}"]`);
       if (saveBtn) saveBtn.disabled = !Number.isInteger(qty) || qty < 1 || qty === item.quantity;
 
-      // Keep the m² equivalent in step with what is being typed, even before
+      // Keep the box equivalent in step with what is being typed, even before
       // the change is saved.
-      const rendimiento = item.live && item.live.rendimientoM2 != null ? item.live.rendimientoM2 : null;
+      const soldByM2 = item.live && normalizeUnit(item.live.usageUnit) === "m2";
+      const rendimiento = soldByM2 && item.live.rendimientoM2 != null ? item.live.rendimientoM2 : null;
       if (rendimiento == null) return;
       const coverageEl = app.querySelector(`[data-dsa-coverage="${cssId(itemId)}"]`);
       if (coverageEl) {
         coverageEl.textContent = Number.isInteger(qty) && qty >= 1
-          ? coverageLabel(qty, rendimiento)
+          ? boxesLabel(qty, rendimiento)
           : "";
       }
     }
@@ -1095,6 +1094,7 @@
                   available: v.available,
                   imageUrl: p.imageUrl, imageAlt: null,
                   rendimientoM2: v.rendimientoM2 ?? null,
+                  usageUnit: v.usageUnit ?? null,
                 };
               }
               break;
@@ -1111,7 +1111,11 @@
             : "";
 
           openQtyModal(
-            { rendimientoM2: liveData ? liveData.rendimientoM2 : null, productLabel },
+            {
+              rendimientoM2: liveData ? liveData.rendimientoM2 : null,
+              usageUnit: liveData ? liveData.usageUnit : null,
+              productLabel,
+            },
             ({ quantity, targetM2, wastePctUsed }) => {
               const tempItem = {
                 id: tempId(), variantId, quantity,
@@ -1273,6 +1277,12 @@
       // Accept both "2.88" and the Spanish "2,88" a customer may type.
       const n = parseFloat(String(raw).trim().replace(",", "."));
       return Number.isFinite(n) && n > 0 ? n : null;
+    }
+
+    function normalizeUnit(raw) {
+      if (raw == null) return null;
+      const v = String(raw).trim().toLowerCase().replace(/²/g, "2");
+      return v.length > 0 ? v : null;
     }
 
     function formatNumber(value) {

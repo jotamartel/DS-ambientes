@@ -1,6 +1,14 @@
 {%- if request.page_type == 'product' -%}
   {%- assign dsa_variant = product.selected_or_first_available_variant -%}
   {%- assign dsa_rendimiento = dsa_variant.metafields.calc.rendimiento_m2.value -%}
+  {%- comment -%}
+    Bracket syntax because the namespace contains a hyphen. Read the variant
+    first so a per-variant override wins over the product-level value.
+  {%- endcomment -%}
+  {%- assign dsa_usage_unit = dsa_variant.metafields["ds-forma"]["usage_unit"].value -%}
+  {%- if dsa_usage_unit == blank -%}
+    {%- assign dsa_usage_unit = product.metafields["ds-forma"]["usage_unit"].value -%}
+  {%- endif -%}
   <div
     class="dsa-atp"
     data-customer-id="{{ customer.id }}"
@@ -8,6 +16,7 @@
     data-product-handle="{{ product.handle }}"
     data-variant-id="gid://shopify/ProductVariant/{{ dsa_variant.id }}"
     data-rendimiento-m2="{{ dsa_rendimiento }}"
+    data-usage-unit="{{ dsa_usage_unit }}"
     data-waste-pct="{{ block.settings.waste_pct | default: 10 }}"
     data-redirect-url="{{ block.settings.empty_redirect_url }}"
     data-i18n-added="{{ 'atp.added' | t }}"
@@ -18,8 +27,9 @@
     data-i18n-empty-envs="{{ 'atp.empty_envs' | t }}"
     data-i18n-qty-rendimiento="{{ 'qty.rendimiento' | t }}"
     data-i18n-qty-waste="{{ 'qty.waste' | t }}"
-    data-i18n-qty-coverage="{{ 'qty.coverage' | t }}"
-    data-i18n-qty-leftover="{{ 'qty.leftover' | t }}"
+    data-i18n-qty-m2-label="{{ 'qty.m2_label' | t }}"
+    data-i18n-qty-summary-m2="{{ 'qty.summary_m2' | t }}"
+    data-i18n-qty-boxes="{{ 'qty.boxes' | t }}"
     style="
       --dsa-atp-bg: {{ block.settings.bg_color }};
       --dsa-atp-text: {{ block.settings.text_color }};
@@ -109,32 +119,13 @@
         <h2 class="dsa-atp-modal-title" id="dsa-atp-qty-modal-title">{{ 'qty.title' | t }}</h2>
         <form class="dsa-atp-modal-body">
           {%- comment -%}
-            The m² fieldset is removed by JS for products without a rendimiento
-            metafield, leaving a plain units prompt.
+            One input for both cases. JS relabels it and switches it to decimals
+            when the product is sold by area (ds-forma.usage_unit = m2).
           {%- endcomment -%}
-          <div class="dsa-qty-area" data-field="area" hidden>
-            <p class="dsa-qty-rendimiento" data-field="rendimiento"></p>
-            <label class="dsa-atp-field">
-              <span class="dsa-atp-field-label">{{ 'qty.m2_label' | t }}</span>
-              <input
-                type="number"
-                name="m2"
-                class="dsa-atp-field-input"
-                min="0.01"
-                step="0.01"
-                inputmode="decimal"
-                placeholder="0"
-                autocomplete="off"
-              />
-            </label>
-            <label class="dsa-qty-waste">
-              <input type="checkbox" name="waste" />
-              <span data-field="waste-label"></span>
-            </label>
-          </div>
+          <p class="dsa-qty-rendimiento" data-field="rendimiento" hidden></p>
 
           <label class="dsa-atp-field">
-            <span class="dsa-atp-field-label">{{ 'qty.units_label' | t }}</span>
+            <span class="dsa-atp-field-label" data-field="qty-label">{{ 'qty.units_label' | t }}</span>
             <input
               type="number"
               name="quantity"
@@ -147,6 +138,11 @@
               required
               autocomplete="off"
             />
+          </label>
+
+          <label class="dsa-qty-waste" data-field="waste-row" hidden>
+            <input type="checkbox" name="waste" />
+            <span data-field="waste-label"></span>
           </label>
 
           <p class="dsa-qty-summary" data-field="summary" hidden></p>

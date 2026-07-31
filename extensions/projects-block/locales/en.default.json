@@ -45,10 +45,10 @@
     "title": "How much do you need?",
     "units_label": "Units",
     "m2_label": "Square metres to cover",
-    "rendimiento": "Coverage: {value} m² per unit",
+    "rendimiento": "Coverage: {value} m² per box",
     "waste": "Add {pct}% for waste",
-    "coverage": "{qty} units cover {m2} m²",
-    "leftover": " · {m2} m² left over",
+    "summary_m2": "Adding {qty} m²",
+    "boxes": " · about {n} boxes",
     "submit": "Add"
   },
   "files": {
