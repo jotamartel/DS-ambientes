@@ -62,6 +62,9 @@
         "qty.summary_m2": "Se agregan {qty} m²",
         "qty.boxes": " · equivale a {n} cajas",
         "qty.error": "No se pudo agregar el producto.",
+        "suggest.title": "Pegamento sugerido",
+        "suggest.detail": "{qty} u. para {m2} m² · rinde {rend} m² por unidad",
+        "suggest.add": "Agregar",
         "summary.label": "Total · {n} productos",
         "summary.cart_all": "Agregar todo al carrito",
         "confirm.delete_project": "¿Eliminar el proyecto?",
@@ -512,7 +515,59 @@
             ? `<p style="color: var(--dsa-neutral-500); font-size: 14px;">${esc(i18n["env.no_items"])}</p>`
             : `<div class="dsa-items">${env.items.map((it) => renderItem(it)).join("")}</div>`
           }
+
+          ${renderPegamentoSuggestions(env)}
         </article>
+      `;
+    }
+
+    /**
+     * Adhesive rows the server worked out for this environment: one per glue,
+     * with the bags needed for the pooled area. Purely a suggestion — nothing
+     * is added until the customer asks for it.
+     */
+    function renderPegamentoSuggestions(env) {
+      const list = env.pegamentoSuggestions || [];
+      if (list.length === 0) return "";
+      return `
+        <div class="dsa-suggestions">
+          <p class="dsa-suggestions-title">${esc(i18n["suggest.title"])}</p>
+          ${list.map((s) => {
+            const title = s.variantTitle
+              ? `${s.productTitle} — ${s.variantTitle}`
+              : s.productTitle;
+            const priceText = formatPrice(parseFloat(s.price.amount) * s.quantity, s.price.currencyCode);
+            const usdText = s.priceUsd
+              ? formatPrice(parseFloat(s.priceUsd.amount) * s.quantity, s.priceUsd.currencyCode, 2)
+              : null;
+            return `
+              <div class="dsa-suggestion" data-variant-id="${esc(s.variantId)}">
+                ${s.imageUrl
+                  ? `<img class="dsa-suggestion-img" src="${esc(s.imageUrl)}" alt="" loading="lazy" />`
+                  : `<div class="dsa-suggestion-img"></div>`
+                }
+                <div class="dsa-suggestion-info">
+                  <p class="dsa-suggestion-title">${esc(title)}</p>
+                  <p class="dsa-suggestion-meta">${esc(fillTemplate(i18n["suggest.detail"], {
+                    qty: String(s.quantity),
+                    m2: formatNumber(s.coversM2),
+                    rend: formatNumber(s.rendimientoM2),
+                  }))}</p>
+                  <p class="dsa-suggestion-price">
+                    ${esc(priceText)}
+                    ${usdText ? `<span class="dsa-item-price-usd">${esc(usdText)}</span>` : ""}
+                  </p>
+                </div>
+                <button type="button" class="dsa-btn dsa-btn-pill-sm"
+                        data-action="suggest-add"
+                        data-env-id="${esc(env.id)}"
+                        data-variant-id="${esc(s.variantId)}">
+                  ${esc(i18n["suggest.add"])}
+                </button>
+              </div>
+            `;
+          }).join("")}
+        </div>
       `;
     }
 
@@ -1139,6 +1194,53 @@
               });
             },
           );
+          return;
+        }
+
+        case "suggest-add": {
+          const envId = el.dataset.envId;
+          const variantId = el.dataset.variantId;
+          const env = state.project.environments.find((e) => e.id === envId);
+          if (!env) return;
+          const sugg = (env.pegamentoSuggestions || []).find((s) => s.variantId === variantId);
+          if (!sugg) return;
+
+          const tempItem = {
+            id: tempId(), variantId,
+            quantity: sugg.quantity,
+            targetM2: null, wastePct: null, note: null,
+            live: {
+              variantId, productId: sugg.productId,
+              productTitle: sugg.productTitle, productHandle: sugg.productHandle,
+              variantTitle: sugg.variantTitle,
+              price: sugg.price, priceUsd: sugg.priceUsd,
+              available: sugg.available,
+              imageUrl: sugg.imageUrl, imageAlt: null,
+              // The adhesive itself is sold by the bag, not by area.
+              rendimientoM2: null, usageUnit: null,
+            },
+          };
+          env.items.push(tempItem);
+          // Drop the row straight away: the glue is in the environment now.
+          env.pegamentoSuggestions = (env.pegamentoSuggestions || [])
+            .filter((s) => s.variantId !== variantId);
+          render();
+
+          api("POST", `/projects/${proj().id}/items`, {
+            intent: "add",
+            environmentId: envId,
+            productId: sugg.productId,
+            variantId,
+            productHandle: sugg.productHandle,
+            quantity: sugg.quantity,
+          }).then((r) => {
+            tempItem.id = r.item.id;
+          }).catch((e) => {
+            const i = env.items.indexOf(tempItem);
+            if (i !== -1) env.items.splice(i, 1);
+            env.pegamentoSuggestions.push(sugg);
+            render(); alert(e.message || i18n["qty.error"]);
+          });
           return;
         }
 

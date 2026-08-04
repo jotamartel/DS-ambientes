@@ -3,7 +3,11 @@ import { json } from "@remix-run/node";
 import { z } from "zod";
 import { errorResponse, parseJsonOrFormBody } from "~/api-helpers.server";
 import { customerActor } from "~/shopify-integration/actor.server";
-import { fetchVariantsLive, type LiveVariant } from "~/shopify-integration/products.server";
+import {
+  fetchVariantsLive,
+  type LiveVariant,
+  type Pegamento,
+} from "~/shopify-integration/products.server";
 import {
   archiveProject,
   deleteProject,
@@ -75,6 +79,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         subtotal: envSubtotal,
         subtotalUsd: envHasUsd ? envSubtotalUsd : null,
         items,
+        pegamentoSuggestions: pegamentoSuggestions(items),
       };
     });
 
@@ -104,6 +109,47 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   } catch (err) {
     return errorResponse(err);
   }
+}
+
+/**
+ * Adhesive suggestions for one environment.
+ *
+ * Every m²-sold item that points at an adhesive contributes its area; areas are
+ * pooled per adhesive so two floors sharing one glue produce a single row. An
+ * adhesive already sitting in the environment is dropped — the customer has
+ * decided how much of it they want.
+ */
+function pegamentoSuggestions(
+  items: Array<{ variantId: string; quantity: number; live: LiveVariant | null }>,
+) {
+  const alreadyAdded = new Set(items.map((i) => i.variantId));
+  const pooled = new Map<string, { pegamento: Pegamento; m2: number }>();
+
+  for (const item of items) {
+    const live = item.live;
+    if (!live || live.usageUnit !== "m2" || !live.pegamento) continue;
+    if (alreadyAdded.has(live.pegamento.variantId)) continue;
+    const entry = pooled.get(live.pegamento.variantId);
+    // Quantity is the area itself for m²-sold products.
+    if (entry) entry.m2 += item.quantity;
+    else pooled.set(live.pegamento.variantId, { pegamento: live.pegamento, m2: item.quantity });
+  }
+
+  return Array.from(pooled.values()).map(({ pegamento, m2 }) => ({
+    variantId: pegamento.variantId,
+    productId: pegamento.productId,
+    productHandle: pegamento.productHandle,
+    productTitle: pegamento.productTitle,
+    variantTitle: pegamento.variantTitle,
+    imageUrl: pegamento.imageUrl,
+    price: pegamento.price,
+    priceUsd: pegamento.priceUsd,
+    available: pegamento.available,
+    rendimientoM2: pegamento.rendimientoM2,
+    coversM2: m2,
+    // Whole bags, rounded up. Epsilon guards float noise so 16/8 stays 2.
+    quantity: Math.max(1, Math.ceil(m2 / pegamento.rendimientoM2 - 1e-9)),
+  }));
 }
 
 const Intent = z.enum([
