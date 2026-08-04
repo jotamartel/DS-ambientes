@@ -17,7 +17,39 @@ const USAGE_UNIT_METAFIELD_NAMESPACE =
 const USAGE_UNIT_METAFIELD_KEY =
   process.env.USAGE_UNIT_METAFIELD_KEY ?? "usage_unit";
 
+// Product-level list of product references pointing at the adhesive a floor
+// needs. Only ~2/3 of the m²-sold catalogue has it filled in, so every consumer
+// must tolerate its absence.
+const PEGAMENTO_LINK_NAMESPACE =
+  process.env.PEGAMENTO_LINK_NAMESPACE ?? "calc";
+const PEGAMENTO_LINK_KEY =
+  process.env.PEGAMENTO_LINK_KEY ?? "relacionados_calculadora_lista";
+
+// Variant-level: how many m² one bag of adhesive covers.
+const PEGAMENTO_RENDIMIENTO_NAMESPACE =
+  process.env.PEGAMENTO_RENDIMIENTO_NAMESPACE ?? "calc";
+const PEGAMENTO_RENDIMIENTO_KEY =
+  process.env.PEGAMENTO_RENDIMIENTO_KEY ?? "rendimiento_pegamento";
+
 export type Money = { amount: string; currencyCode: string };
+
+/**
+ * The adhesive a floor product points at, with the coverage needed to work out
+ * how many bags a given area takes.
+ */
+export type Pegamento = {
+  variantId: string;
+  productId: string;
+  productTitle: string;
+  productHandle: string;
+  variantTitle: string | null;
+  price: Money;
+  priceUsd: Money | null;
+  available: boolean;
+  imageUrl: string | null;
+  // m² covered by one bag.
+  rendimientoM2: number;
+};
 
 export type LiveVariant = {
   variantId: string;       // GID
@@ -34,6 +66,8 @@ export type LiveVariant = {
   rendimientoM2: number | null;
   // Normalized lowercase, e.g. "m2". null when the metafield is absent.
   usageUnit: string | null;
+  // Adhesive this product needs. null when unlinked or missing coverage.
+  pegamento: Pegamento | null;
 };
 
 export type ProductSearchHit = {
@@ -109,6 +143,39 @@ function parseRendimiento(raw: string | null | undefined): number | null {
 }
 
 /**
+ * Pick the adhesive to suggest out of the linked products.
+ *
+ * The link is a list and each product may have several bag sizes, so we take
+ * the first variant that actually declares a coverage — anything without one
+ * cannot be turned into a bag count and is useless as a suggestion.
+ */
+function firstPegamento(
+  node: NonNullable<RawVariantNode>["product"],
+): Pegamento | null {
+  const linked = node?.pegamentoLink?.references?.nodes ?? [];
+  for (const product of linked) {
+    for (const variant of product.variants?.nodes ?? []) {
+      const rendimiento = parseRendimiento(variant.rendimientoPegamento?.value);
+      if (rendimiento == null || !variant.price) continue;
+      const usdValue = parseDecimal(variant.usdMetafield?.value);
+      return {
+        variantId: variant.id,
+        productId: product.id,
+        productTitle: product.title,
+        productHandle: product.handle,
+        variantTitle: variant.title === "Default Title" ? null : (variant.title ?? null),
+        price: variant.price,
+        priceUsd: usdValue ? { amount: usdValue, currencyCode: "USD" } : null,
+        available: variant.availableForSale !== false,
+        imageUrl: variant.image?.url ?? product.featuredImage?.url ?? null,
+        rendimientoM2: rendimiento,
+      };
+    }
+  }
+  return null;
+}
+
+/**
  * Normalize the usage unit so "M2", "m2" and " m² " all compare equal.
  * The superscript ² is folded to a plain 2.
  */
@@ -134,6 +201,33 @@ const NODES_QUERY = /* GraphQL */ `
           featuredImage { url altText }
           usageUnitMetafield: metafield(namespace: "${USAGE_UNIT_METAFIELD_NAMESPACE}", key: "${USAGE_UNIT_METAFIELD_KEY}") {
             value
+          }
+          pegamentoLink: metafield(namespace: "${PEGAMENTO_LINK_NAMESPACE}", key: "${PEGAMENTO_LINK_KEY}") {
+            references(first: 5) {
+              nodes {
+                ... on Product {
+                  id
+                  title
+                  handle
+                  featuredImage { url }
+                  variants(first: 10) {
+                    nodes {
+                      id
+                      title
+                      availableForSale
+                      price { amount currencyCode }
+                      image { url }
+                      rendimientoPegamento: metafield(namespace: "${PEGAMENTO_RENDIMIENTO_NAMESPACE}", key: "${PEGAMENTO_RENDIMIENTO_KEY}") {
+                        value
+                      }
+                      usdMetafield: metafield(namespace: "${USD_METAFIELD_NAMESPACE}", key: "${USD_METAFIELD_KEY}") {
+                        value
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
         }
         usageUnitMetafield: metafield(namespace: "${USAGE_UNIT_METAFIELD_NAMESPACE}", key: "${USAGE_UNIT_METAFIELD_KEY}") {
@@ -164,6 +258,27 @@ type RawVariantNode = {
     handle: string;
     featuredImage?: { url: string; altText: string | null } | null;
     usageUnitMetafield?: { value: string } | null;
+    pegamentoLink?: {
+      references?: {
+        nodes: Array<{
+          id: string;
+          title: string;
+          handle: string;
+          featuredImage?: { url: string } | null;
+          variants: {
+            nodes: Array<{
+              id: string;
+              title?: string | null;
+              availableForSale?: boolean;
+              price: Money;
+              image?: { url: string } | null;
+              rendimientoPegamento?: { value: string } | null;
+              usdMetafield?: { value: string } | null;
+            }>;
+          };
+        }>;
+      } | null;
+    } | null;
   };
   usdMetafield?: { value: string; type: string } | null;
   rendimientoMetafield?: { value: string; type: string } | null;
@@ -221,6 +336,7 @@ export async function fetchVariantsLive(
         usageUnit:
           parseUsageUnit(node.usageUnitMetafield?.value) ??
           parseUsageUnit(node.product.usageUnitMetafield?.value),
+        pegamento: firstPegamento(node.product),
       });
     }
   }
