@@ -48,10 +48,19 @@ export async function adminGraphqlQuery<T>(
 
   const body = (await res.json()) as AdminResponse<T>;
   if (body.errors?.length) {
-    throw new ProjectsError(
-      "INTERNAL",
-      `Admin API errors: ${body.errors.map((e) => e.message).join("; ")}`,
-    );
+    const detail = body.errors.map((e) => e.message).join("; ");
+    // "Access denied for <field>" means the stored token was issued without
+    // the scope that field needs — adding it to the config is not enough, the
+    // app has to be re-authorized so Shopify mints a new token. Say so instead
+    // of surfacing a bare 500 that tells nobody anything.
+    if (/access denied/i.test(detail)) {
+      throw new ProjectsError(
+        "INTERNAL",
+        `La app no tiene permisos suficientes en Shopify (${detail}). ` +
+          `Hay que reautorizarla para que se emita un token con los scopes actuales.`,
+      );
+    }
+    throw new ProjectsError("INTERNAL", `Admin API errors: ${detail}`);
   }
   if (!body.data) {
     throw new ProjectsError("INTERNAL", "Admin API returned no data");
