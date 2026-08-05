@@ -796,9 +796,14 @@
           const ph  = row.querySelector('[data-field="img-placeholder"]');
           if (product.imageUrl) { img.src = product.imageUrl; img.hidden = false; ph.hidden = true; }
 
-          // search-add lives outside attachEvents lifecycle, so wire here.
+          // Rows are also repainted from runLiveSearch, which does not re-run
+          // attachEvents, so the button has to be wired here. When the panel is
+          // repainted by render() instead, attachEvents binds it a second time
+          // — stopImmediatePropagation keeps that duplicate from firing, since
+          // the two paths pass different elements (row here, button there).
           const addBtn = row.querySelector('[data-action="search-add"]');
           if (addBtn) addBtn.addEventListener("click", (e) => {
+            e.stopImmediatePropagation();
             handleClick("search-add", row, e);
           });
 
@@ -812,8 +817,28 @@
        ------------------------------------------------------------ */
     let activeModal = null;
 
+    /**
+     * True when a modal is genuinely on screen.
+     *
+     * `activeModal` is cleared by the dialog's "close" event. If anything throws
+     * between assigning it and the dialog actually opening — or if the element
+     * is torn out of the DOM without closing — the variable stays pointing at a
+     * dialog nobody can see, and every later open is discarded in silence. That
+     * is the "clicking does nothing until I reload the page" symptom: nothing
+     * short of a reload cleared it. Treat a detached or closed dialog as gone.
+     */
+    function modalIsOpen() {
+      if (!activeModal) return false;
+      if (activeModal.isConnected && activeModal.open) return true;
+      // Drop the leftover node too: a dialog that never opened stays in the DOM
+      // and would shadow the real one in later queries.
+      activeModal.remove();
+      activeModal = null;
+      return false;
+    }
+
     function openModal(tplName, onSubmit) {
-      if (activeModal) return;
+      if (modalIsOpen()) return;
       const dialog = cloneTplFirst(tplName);
       if (!dialog) return;
       root.appendChild(dialog);
@@ -858,7 +883,7 @@
      * it is shown as context, and used to hint how many boxes that area is.
      */
     function openQtyModal(opts, onConfirm) {
-      if (activeModal) return;
+      if (modalIsOpen()) return;
       const dialog = cloneTplFirst("qty-modal");
       if (!dialog) return;
       root.appendChild(dialog);
@@ -1170,9 +1195,14 @@
         }
 
         case "search-add": {
-          const productId = el.dataset.productId;
-          const variantId = el.dataset.variantId;
-          const productHandle = el.dataset.productHandle || null;
+          // The product data lives on the row, but attachEvents hands us the
+          // button. Walk up so the handler works with either element instead of
+          // silently adding nothing when it gets the button.
+          const row = el.dataset.variantId ? el : el.closest("[data-variant-id]");
+          if (!row) return;
+          const productId = row.dataset.productId;
+          const variantId = row.dataset.variantId;
+          const productHandle = row.dataset.productHandle || null;
 
           let liveData = null;
           for (const p of state.search.results) {
