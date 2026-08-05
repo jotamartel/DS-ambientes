@@ -143,16 +143,14 @@ function parseRendimiento(raw: string | null | undefined): number | null {
 }
 
 /**
- * Pick the adhesive to suggest out of the linked products.
+ * Pick the adhesive to suggest out of one link's products.
  *
  * The link is a list and each product may have several bag sizes, so we take
  * the first variant that actually declares a coverage — anything without one
  * cannot be turned into a bag count and is useless as a suggestion.
  */
-function firstPegamento(
-  node: NonNullable<RawVariantNode>["product"],
-): Pegamento | null {
-  const linked = node?.pegamentoLink?.references?.nodes ?? [];
+function pegamentoFromLink(link: RawPegamentoLink | undefined): Pegamento | null {
+  const linked = link?.references?.nodes ?? [];
   for (const product of linked) {
     for (const variant of product.variants?.nodes ?? []) {
       const rendimiento = parseRendimiento(variant.rendimientoPegamento?.value);
@@ -176,6 +174,23 @@ function firstPegamento(
 }
 
 /**
+ * Resolve the adhesive for a variant, checking the variant's own link before
+ * the parent product's.
+ *
+ * The link started out as a product-level metafield, but a handful of products
+ * have variants that need different adhesives — a 15x15 and a 61xLL of the same
+ * travertino do not take the same glue. Reading the variant first lets those be
+ * overridden one by one while everything already loaded on the parent keeps
+ * working untouched. See DSA-359.
+ */
+function resolvePegamento(node: NonNullable<RawVariantNode>): Pegamento | null {
+  return (
+    pegamentoFromLink(node.pegamentoLink) ??
+    pegamentoFromLink(node.product?.pegamentoLink)
+  );
+}
+
+/**
  * Normalize the usage unit so "M2", "m2" and " m² " all compare equal.
  * The superscript ² is folded to a plain 2.
  */
@@ -184,6 +199,38 @@ function parseUsageUnit(raw: string | null | undefined): string | null {
   const v = String(raw).trim().toLowerCase().replace(/²/g, "2");
   return v.length > 0 ? v : null;
 }
+
+/**
+ * The adhesive link resolves to whole products, each with its own bag sizes.
+ * Shared because the link is read at two levels — see resolvePegamento.
+ */
+const PEGAMENTO_LINK_SELECTION = /* GraphQL */ `
+  references(first: 5) {
+    nodes {
+      ... on Product {
+        id
+        title
+        handle
+        featuredImage { url }
+        variants(first: 10) {
+          nodes {
+            id
+            title
+            availableForSale
+            price { amount currencyCode }
+            image { url }
+            rendimientoPegamento: metafield(namespace: "${PEGAMENTO_RENDIMIENTO_NAMESPACE}", key: "${PEGAMENTO_RENDIMIENTO_KEY}") {
+              value
+            }
+            usdMetafield: metafield(namespace: "${USD_METAFIELD_NAMESPACE}", key: "${USD_METAFIELD_KEY}") {
+              value
+            }
+          }
+        }
+      }
+    }
+  }
+`;
 
 const NODES_QUERY = /* GraphQL */ `
   query VariantsByIds($ids: [ID!]!) {
@@ -203,35 +250,14 @@ const NODES_QUERY = /* GraphQL */ `
             value
           }
           pegamentoLink: metafield(namespace: "${PEGAMENTO_LINK_NAMESPACE}", key: "${PEGAMENTO_LINK_KEY}") {
-            references(first: 5) {
-              nodes {
-                ... on Product {
-                  id
-                  title
-                  handle
-                  featuredImage { url }
-                  variants(first: 10) {
-                    nodes {
-                      id
-                      title
-                      availableForSale
-                      price { amount currencyCode }
-                      image { url }
-                      rendimientoPegamento: metafield(namespace: "${PEGAMENTO_RENDIMIENTO_NAMESPACE}", key: "${PEGAMENTO_RENDIMIENTO_KEY}") {
-                        value
-                      }
-                      usdMetafield: metafield(namespace: "${USD_METAFIELD_NAMESPACE}", key: "${USD_METAFIELD_KEY}") {
-                        value
-                      }
-                    }
-                  }
-                }
-              }
-            }
+            ${PEGAMENTO_LINK_SELECTION}
           }
         }
         usageUnitMetafield: metafield(namespace: "${USAGE_UNIT_METAFIELD_NAMESPACE}", key: "${USAGE_UNIT_METAFIELD_KEY}") {
           value
+        }
+        pegamentoLink: metafield(namespace: "${PEGAMENTO_LINK_NAMESPACE}", key: "${PEGAMENTO_LINK_KEY}") {
+          ${PEGAMENTO_LINK_SELECTION}
         }
         usdMetafield: metafield(namespace: "${USD_METAFIELD_NAMESPACE}", key: "${USD_METAFIELD_KEY}") {
           value
@@ -246,6 +272,28 @@ const NODES_QUERY = /* GraphQL */ `
   }
 `;
 
+type RawPegamentoLink = {
+  references?: {
+    nodes: Array<{
+      id: string;
+      title: string;
+      handle: string;
+      featuredImage?: { url: string } | null;
+      variants: {
+        nodes: Array<{
+          id: string;
+          title?: string | null;
+          availableForSale?: boolean;
+          price: Money;
+          image?: { url: string } | null;
+          rendimientoPegamento?: { value: string } | null;
+          usdMetafield?: { value: string } | null;
+        }>;
+      };
+    }>;
+  } | null;
+} | null;
+
 type RawVariantNode = {
   id: string;
   title?: string | null;
@@ -258,31 +306,12 @@ type RawVariantNode = {
     handle: string;
     featuredImage?: { url: string; altText: string | null } | null;
     usageUnitMetafield?: { value: string } | null;
-    pegamentoLink?: {
-      references?: {
-        nodes: Array<{
-          id: string;
-          title: string;
-          handle: string;
-          featuredImage?: { url: string } | null;
-          variants: {
-            nodes: Array<{
-              id: string;
-              title?: string | null;
-              availableForSale?: boolean;
-              price: Money;
-              image?: { url: string } | null;
-              rendimientoPegamento?: { value: string } | null;
-              usdMetafield?: { value: string } | null;
-            }>;
-          };
-        }>;
-      } | null;
-    } | null;
+    pegamentoLink?: RawPegamentoLink;
   };
   usdMetafield?: { value: string; type: string } | null;
   rendimientoMetafield?: { value: string; type: string } | null;
   usageUnitMetafield?: { value: string } | null;
+  pegamentoLink?: RawPegamentoLink;
 } | null;
 
 /**
@@ -336,7 +365,7 @@ export async function fetchVariantsLive(
         usageUnit:
           parseUsageUnit(node.usageUnitMetafield?.value) ??
           parseUsageUnit(node.product.usageUnitMetafield?.value),
-        pegamento: firstPegamento(node.product),
+        pegamento: resolvePegamento(node),
       });
     }
   }
