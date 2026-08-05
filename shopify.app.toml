@@ -5,12 +5,6 @@ name = "DS Ambientes Projects"
 application_url = "https://ds-ambientes.vercel.app"
 embedded = false
 
-# Sin esto, `shopify app deploy` publica solo las extensiones y NO envía esta
-# configuración a Shopify. Eso dejó a la app registrada con los scopes viejos
-# aunque el archivo declarara write_files, y ninguna reinstalación podía
-# conceder un permiso que Shopify no tenía registrado.
-[build]
-
 [webhooks]
 api_version = "2026-04"
 
