@@ -47,11 +47,9 @@ const shopify = shopifyApp({
   sessionStorage: new PrismaSessionStorage(prisma),
   distribution: AppDistribution.SingleMerchant,
   isEmbeddedApp: false,
-  // No `unstable_newEmbeddedAuthStrategy` on purpose: that strategy assumes an
-  // embedded app doing token exchange, and it makes the /auth routes answer
-  // 410 Gone. This app is not embedded, so it needs the classic OAuth flow —
-  // without it there is no way to re-authorize when the scopes change, which
-  // is exactly what blocked granting write_files.
+  future: {
+    unstable_newEmbeddedAuthStrategy: true,
+  },
 });
 
 export default shopify;
