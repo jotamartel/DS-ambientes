@@ -63,6 +63,7 @@
         "qty.boxes": " · equivale a {n} cajas",
         "qty.error": "No se pudo agregar el producto.",
         "suggest.title": "Pegamento sugerido",
+        "suggest.for": "Para: {products}",
         "suggest.detail": "{qty} u. para {m2} m² · rinde {rend} m² por unidad",
         "suggest.add": "Agregar",
         "summary.label": "Total · {n} productos",
@@ -548,6 +549,12 @@
                 }
                 <div class="dsa-suggestion-info">
                   <p class="dsa-suggestion-title">${esc(title)}</p>
+                  ${(s.forProducts || []).length > 0
+                    ? `<p class="dsa-suggestion-for">${esc(fillTemplate(i18n["suggest.for"], {
+                        products: s.forProducts.join(" · "),
+                      }))}</p>`
+                    : ""
+                  }
                   <p class="dsa-suggestion-meta">${esc(fillTemplate(i18n["suggest.detail"], {
                     qty: String(s.quantity),
                     m2: formatNumber(s.coversM2),

@@ -123,19 +123,35 @@ function pegamentoSuggestions(
   items: Array<{ variantId: string; quantity: number; live: LiveVariant | null }>,
 ) {
   const alreadyAdded = new Set(items.map((i) => i.variantId));
-  const pooled = new Map<string, { pegamento: Pegamento; m2: number }>();
+  const pooled = new Map<
+    string,
+    { pegamento: Pegamento; m2: number; forProducts: string[] }
+  >();
 
   for (const item of items) {
     const live = item.live;
     if (!live || live.usageUnit !== "m2" || !live.pegamento) continue;
     if (alreadyAdded.has(live.pegamento.variantId)) continue;
+    // Which floors this glue is for. Without it two suggestion rows look
+    // interchangeable, as if either adhesive worked for any of the products.
+    const label = live.variantTitle
+      ? `${live.productTitle} — ${live.variantTitle}`
+      : live.productTitle;
     const entry = pooled.get(live.pegamento.variantId);
     // Quantity is the area itself for m²-sold products.
-    if (entry) entry.m2 += item.quantity;
-    else pooled.set(live.pegamento.variantId, { pegamento: live.pegamento, m2: item.quantity });
+    if (entry) {
+      entry.m2 += item.quantity;
+      if (!entry.forProducts.includes(label)) entry.forProducts.push(label);
+    } else {
+      pooled.set(live.pegamento.variantId, {
+        pegamento: live.pegamento,
+        m2: item.quantity,
+        forProducts: [label],
+      });
+    }
   }
 
-  return Array.from(pooled.values()).map(({ pegamento, m2 }) => ({
+  return Array.from(pooled.values()).map(({ pegamento, m2, forProducts }) => ({
     variantId: pegamento.variantId,
     productId: pegamento.productId,
     productHandle: pegamento.productHandle,
@@ -147,6 +163,7 @@ function pegamentoSuggestions(
     available: pegamento.available,
     rendimientoM2: pegamento.rendimientoM2,
     coversM2: m2,
+    forProducts,
     // Whole bags, rounded up. Epsilon guards float noise so 16/8 stays 2.
     quantity: Math.max(1, Math.ceil(m2 / pegamento.rendimientoM2 - 1e-9)),
   }));
