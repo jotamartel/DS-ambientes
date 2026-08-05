@@ -572,6 +572,45 @@
     }
 
     /**
+     * Adhesive suggestions are computed server-side from the pooled area of an
+     * environment, so any change to the items makes them stale. Item edits are
+     * optimistic and never refetch, which would otherwise leave the customer
+     * having to reload the page to see the glue they now need.
+     *
+     * Debounced: several quick edits collapse into one request. Failures are
+     * swallowed — a missing suggestion is not worth an error in the customer's
+     * face, and the next edit retries.
+     */
+    let suggestRefreshTimer = null;
+    function refreshPegamentoSuggestions() {
+      if (suggestRefreshTimer) clearTimeout(suggestRefreshTimer);
+      suggestRefreshTimer = setTimeout(() => {
+        suggestRefreshTimer = null;
+        // `proj()` is a local helper elsewhere in this file, so read the state
+        // directly here.
+        const current = state.project && state.project.project;
+        if (!current || state.view !== "detail") return;
+        api("GET", `/projects/${current.id}`).then((data) => {
+          const still = state.project && state.project.project;
+          if (!still || still.id !== current.id) return;
+          const fresh = new Map(
+            (data.environments || []).map((e) => [e.id, e.pegamentoSuggestions || []]),
+          );
+          let changed = false;
+          for (const env of state.project.environments) {
+            const next = fresh.get(env.id);
+            if (!next) continue;
+            if (JSON.stringify(next) !== JSON.stringify(env.pegamentoSuggestions || [])) {
+              env.pegamentoSuggestions = next;
+              changed = true;
+            }
+          }
+          if (changed) render();
+        }).catch(() => {});
+      }, 500);
+    }
+
+    /**
      * For items sold by area the quantity already IS the m², so the hint next
      * to it is how many boxes that area works out to.
      */
@@ -1187,6 +1226,7 @@
                 quantity, targetM2, wastePct: wastePctUsed,
               }).then((r) => {
                 tempItem.id = r.item.id;
+                refreshPegamentoSuggestions();
               }).catch((e) => {
                 const i = env.items.indexOf(tempItem);
                 if (i !== -1) env.items.splice(i, 1);
@@ -1235,6 +1275,7 @@
             quantity: sugg.quantity,
           }).then((r) => {
             tempItem.id = r.item.id;
+            refreshPegamentoSuggestions();
           }).catch((e) => {
             const i = env.items.indexOf(tempItem);
             if (i !== -1) env.items.splice(i, 1);
@@ -1259,6 +1300,10 @@
           render();
           api("POST", `/projects/${proj().id}/items`, {
             intent: "delete", itemId,
+          }).then(() => {
+            // Removing a floor shrinks the area; removing the glue brings its
+            // suggestion back.
+            refreshPegamentoSuggestions();
           }).catch((e) => {
             containerEnv.items.splice(removedIdx, 0, removedItem);
             render(); alert(e.message);
@@ -1283,6 +1328,8 @@
           }).then(() => {
             // refresh subtotal display
             render();
+            // The bag count follows the area, so it has to be recomputed too.
+            refreshPegamentoSuggestions();
           }).catch((e) => {
             target.quantity = oldQty;
             render(); alert(e.message);
