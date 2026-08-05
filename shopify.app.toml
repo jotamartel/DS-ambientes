@@ -10,7 +10,6 @@ embedded = false
 # aunque el archivo declarara write_files, y ninguna reinstalación podía
 # conceder un permiso que Shopify no tenía registrado.
 [build]
-include_config_on_deploy = true
 
 [webhooks]
 api_version = "2026-04"
