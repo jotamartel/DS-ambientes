@@ -699,6 +699,15 @@
   font-weight: 500;
   color: var(--dsa-text, #1f1f1f);
 }
+/* Which floors this glue is for — without it the rows look interchangeable */
+.dsa-suggestion-for {
+  margin: 2px 0 0;
+  font-family: var(--dsa-font-body);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--dsa-text, #1f1f1f);
+}
+
 .dsa-suggestion-meta,
 .dsa-suggestion-price {
   margin: 2px 0 0;
