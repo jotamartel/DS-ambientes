@@ -17,11 +17,11 @@
 >
   <div class="dsa-container">
     <header class="dsa-header" data-dsa-header="list">
-      <h1 class="dsa-title">{{ block.settings.heading }}</h1>
+      <h1 class="dsa-title">{{ block.settings.heading | escape }}</h1>
 
       {%- if customer == nil -%}
         <a href="/account/login" class="dsa-btn dsa-btn-primary">
-          {{ block.settings.login_cta }}
+          {{ block.settings.login_cta | escape }}
         </a>
       {%- else -%}
         <button type="button" class="dsa-btn dsa-btn-primary" data-action="open-create">
@@ -33,12 +33,12 @@
 
     {%- if customer == nil -%}
       <div class="dsa-wrapper">
-        <p class="dsa-wrapper-text">{{ block.settings.login_prompt }}</p>
+        <p class="dsa-wrapper-text">{{ block.settings.login_prompt | escape }}</p>
       </div>
     {%- else -%}
       <div class="dsa-app" data-state="loading">
         <div class="dsa-wrapper">
-          <p class="dsa-wrapper-text">{{ block.settings.loading_text }}</p>
+          <p class="dsa-wrapper-text">{{ block.settings.loading_text | escape }}</p>
         </div>
       </div>
     {%- endif -%}
@@ -99,7 +99,7 @@
         </button>
         <div class="dsa-modal-header">
           <h2 class="dsa-modal-title" id="dsa-modal-title">{{ 'modal.new_project' | t }}</h2>
-          <p class="dsa-modal-description">{{ block.settings.modal_description }}</p>
+          <p class="dsa-modal-description">{{ block.settings.modal_description | escape }}</p>
         </div>
         <form class="dsa-modal-body" data-action="modal-create" onsubmit="return false">
           <label class="dsa-field">
@@ -128,7 +128,7 @@
         </button>
         <div class="dsa-modal-header">
           <h2 class="dsa-modal-title" id="dsa-env-modal-title">{{ 'modal.new_env' | t }}</h2>
-          <p class="dsa-modal-description">{{ block.settings.env_modal_description }}</p>
+          <p class="dsa-modal-description">{{ block.settings.env_modal_description | escape }}</p>
         </div>
         <form class="dsa-modal-body" data-action="env-modal-create" onsubmit="return false">
           <label class="dsa-field">

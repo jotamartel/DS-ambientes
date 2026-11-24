@@ -25,9 +25,13 @@ import prisma from "./db.server";
  * every stagedUploadsCreate call came back "Access denied". Keeping the list in
  * the repo means a mismatch shows up in a diff. The env var still wins when
  * set, so an operator can adjust without a deploy.
+ *
+ * Least privilege: products are read through the Storefront API
+ * (`unauthenticated_read_product_listings`), and the only Admin API calls are
+ * Files (`write_files`) and storefront-token management. `read_products` is
+ * deliberately NOT requested (Shopify app security check SCOPE_OVER_REQUEST).
  */
 const DEFAULT_SCOPES = [
-  "read_products",
   "unauthenticated_read_product_listings",
   "write_files",
 ];
