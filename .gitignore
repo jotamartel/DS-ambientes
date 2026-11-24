@@ -12,3 +12,5 @@ prisma/dev.db-journal
 dist
 .vercel
 .claude
+.infracode/sessions/
+.claude/settings.local.json
