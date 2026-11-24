@@ -2,7 +2,7 @@
   "project": "DS-ambientes",
   "version": "v1.13.3",
   "language": "es",
-  "platform": "shopify",
+  "platform": "generic",
   "mode": "dev",
   "installed_groups": [
     "claude",

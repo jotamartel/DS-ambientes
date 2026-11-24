@@ -1,0 +1,10 @@
+{
+  "modules": [
+    { "name": "Integración Shopify", "paths": ["app/shopify-integration", "app/shopify.server.ts"] },
+    { "name": "Servicios de dominio", "paths": ["app/services", "app/db.server.ts"] },
+    { "name": "Modelo de datos", "paths": ["prisma"] },
+    { "name": "Rutas y UI cliente", "paths": ["app/routes", "app/customer-ui", "app/api-helpers.server.ts", "app/root.tsx", "app/entry.server.tsx"] },
+    { "name": "Theme extension", "paths": ["extensions/projects-block"] },
+    { "name": "Scripts de mantenimiento", "paths": ["scripts"] }
+  ]
+}
